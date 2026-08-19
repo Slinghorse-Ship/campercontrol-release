@@ -21,6 +21,7 @@ service=/service/start-gui
 backup_dir=/data/campercontrol/backups
 version_file=/opt/victronenergy/version
 expected_venus_version='v3.80~39'
+expected_venus_build='20260716174100'
 expected_arch=armv7l
 expected_hash=fde8edc0fd85ed0d1156b1ba8b5568078b7d88f5ae03a3a42ff4603e74741f36
 expected_files=940
@@ -78,14 +79,15 @@ trap on_exit EXIT HUP INT TERM
 
 test -d "$active"
 test -f "$version_file"
-actual_venus_version=$(tr -d '\r\n' < "$version_file")
+actual_venus_version=$(sed -n '1{s/\r$//;p;}' "$version_file")
+actual_venus_build=$(sed -n '3{s/\r$//;p;}' "$version_file")
 actual_arch=$(uname -m)
-if [ "$actual_venus_version" != "$expected_venus_version" ] || [ "$actual_arch" != "$expected_arch" ]; then
+if [ "$actual_venus_version" != "$expected_venus_version" ] || [ "$actual_venus_build" != "$expected_venus_build" ] || [ "$actual_arch" != "$expected_arch" ]; then
 	if [ "$force_incompatible" -ne 1 ]; then
-		printf '%s\n' "INCOMPATIBLE_FIRMWARE: expected ${expected_venus_version}/${expected_arch}, got ${actual_venus_version}/${actual_arch}" >&2
+		printf '%s\n' "INCOMPATIBLE_FIRMWARE: expected ${expected_venus_version}/${expected_venus_build}/${expected_arch}, got ${actual_venus_version}/${actual_venus_build}/${actual_arch}" >&2
 		exit 2
 	fi
-	printf '%s\n' "DANGER_FORCE_INCOMPATIBLE_FIRMWARE: expected ${expected_venus_version}/${expected_arch}, got ${actual_venus_version}/${actual_arch}" >&2
+	printf '%s\n' "DANGER_FORCE_INCOMPATIBLE_FIRMWARE: expected ${expected_venus_version}/${expected_venus_build}/${expected_arch}, got ${actual_venus_version}/${actual_venus_build}/${actual_arch}" >&2
 fi
 
 current_hash=$(sha256sum "$active/venus-gui-v2" | awk '{print $1}')
