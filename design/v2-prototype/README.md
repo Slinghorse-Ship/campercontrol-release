@@ -11,18 +11,20 @@ Interaktiver Arbeitsstand für die nächste CamperControl-Oberfläche. Dieser Or
 
 ## Aktueller Umfang
 
-- Licht: sechs reale STAR-Power-Kreise, Szenen, getrennte Auswahl- und Schaltflächen, permanenter Dimmer für die gewählte dimmbare Zone und passive Transit-Darstellung ohne Hotspots.
+- Licht: sechs reale Lichtkreise und Szenen. Die gesamte Zonenkarte und die zugehörige Leuchte im Transitbild sind Schalter und Rückmeldung zugleich; separate Schalter entfallen. Der permanente Dimmer für die gewählte dimmbare Zone bleibt erhalten.
 - Transit: Das originale Fahrerfoto bleibt pixelgleich; eine separate SVG-Ebene ergänzt ausschließlich den im Foto fehlenden zweiten Schiebetürgriff. Heck, Rückleuchte, Heckarbeitsleuchte, Dachträgerleuchten und Markise werden nicht verändert.
 - Symbole: eigene 24-x-24-Monoline-Familie `Rail Light` für Navigation, Innenraum, links, rechts, hinten, Tagfahrlicht und Warnlicht.
-- Klima: Autoterm-Zeitlimit ist optional und standardmäßig eingeklappt.
-- Energie: kombinierte Seite `12 V & 230 V` und zweite Seite `Quellen`.
+- Klima: reduzierte Geräteansicht ohne wiederholte Kategorien; das Autoterm-Zeitlimit ist optional und standardmäßig eingeklappt.
+- Energie: kombinierte Seite `12 V & 230 V` mit fünf tatsächlichen Verbrauchern und zweite Seite `Quellen`. Icons, Fläche, Kontur und Farbe zeigen den Zustand; Kanalnummern sowie sichtbare Ein-/Aus-/Online-Texte entfallen.
 - Home: `Solar gesamt` öffnet direkt `Energie > Quellen` und hebt die Solaraufteilung hervor.
+- Allgemein: Seitentitel, Geräte- und Statusbezeichnungen werden nicht mehrfach wiederholt. Der Header verwendet das moderne, code-native Transit-Frontsymbol aus dem frühen V2-Mockup.
 
 ## Dateien
 
 - `campercontrol-v2-transit-horizon.html`: Inline-Fragment für die interaktive Designprüfung.
 - `campercontrol-v2-transit-horizon-standalone.html`: direkt im Browser öffnende Fassung.
 - `campercontrol-v2-light-modern-touch50.png`: geprüfte 800-x-480-Browserreferenz der Lichtseite.
+- `campercontrol-v2-energy-modern-touch50.png`: geprüfte 800-x-480-Browserreferenz der Energieseite.
 
 ## Datenhinweis
 
