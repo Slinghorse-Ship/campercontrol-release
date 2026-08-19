@@ -6,11 +6,13 @@ Dieses Repository ergänzt die drei Quellcode-Repositories. Es enthält die tats
 
 ## Aktuelles Release
 
-`releases/2026-08-19-v3.80-beta39-design-v1-v2` enthält den auswählbaren
-CamperControl-V1/V2-Stand für GX Touch 50, Remote Console/WASM, Ford SYNC und
-Node-RED. V2 ist der native Port der eingefrorenen Transit-Horizon-Referenz; V1
-bleibt vollständig erreichbar. Vor einer Installation immer zuerst das dortige
-`tools/verify-release.ps1` ausführen.
+`releases/2026-08-19-v3.80-beta39-display-fit` ist das additive Patch-Release
+für GX Touch 50, Remote Console/WASM, Ford SYNC und Node-RED. Es ergänzt den
+weiterhin unveränderten Stand
+`2026-08-19-v3.80-beta39-design-v1-v2` um 800 × 480 Full-Bleed, das transparente
+Transit-/FORD-Raptor-Symbol, den oberen Schließen-/Zurück-Knopf und die aktuelle
+Transport-/Orion-Härtung. V1 bleibt vollständig erreichbar. Vor einer
+Installation immer zuerst das dortige `tools/verify-release.ps1` ausführen.
 
 ## Repositories der Quellen
 
