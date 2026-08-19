@@ -11,20 +11,25 @@ Interaktiver Arbeitsstand für die nächste CamperControl-Oberfläche. Dieser Or
 
 ## Aktueller Umfang
 
-- Licht: sechs reale Lichtkreise und Szenen. Die gesamte Zonenkarte und die zugehörige Leuchte im Transitbild sind Schalter und Rückmeldung zugleich; separate Schalter entfallen. Der permanente Dimmer für die gewählte dimmbare Zone bleibt erhalten.
+- Licht: sechs reale Lichtkreise plus das manuelle Zusatz-Fernlicht auf STAR-Power-Kanal 3. Die gesamte Zonenkarte ist Schalter und Rückmeldung zugleich; Innen-, Seiten-, Heck- und Fernlicht lassen sich zusätzlich direkt im Transitbild bedienen. Weiß und Orange teilen sich eine Frontleistenkarte und werden als schmale Lichtlinie am Dachbalken dargestellt, das Fernlicht belegt den vollständigen Zusatzbalken. Der permanente Dimmer für die gewählte dimmbare Zone bleibt erhalten.
 - Transit: Das originale Fahrerfoto bleibt pixelgleich; eine separate SVG-Ebene ergänzt ausschließlich den im Foto fehlenden zweiten Schiebetürgriff. Heck, Rückleuchte, Heckarbeitsleuchte, Dachträgerleuchten und Markise werden nicht verändert.
-- Symbole: eigene 24-x-24-Monoline-Familie `Rail Light` für Navigation, Innenraum, links, rechts, hinten, Tagfahrlicht und Warnlicht.
-- Klima: reduzierte Geräteansicht ohne wiederholte Kategorien; das Autoterm-Zeitlimit ist optional und standardmäßig eingeklappt.
-- Energie: kombinierte Seite `12 V & 230 V` mit fünf tatsächlichen Verbrauchern und zweite Seite `Quellen`. Icons, Fläche, Kontur und Farbe zeigen den Zustand; Kanalnummern sowie sichtbare Ein-/Aus-/Online-Texte entfallen.
-- Home: `Solar gesamt` öffnet direkt `Energie > Quellen` und hebt die Solaraufteilung hervor.
-- Allgemein: Seitentitel, Geräte- und Statusbezeichnungen werden nicht mehrfach wiederholt. Der Header verwendet das moderne, code-native Transit-Frontsymbol aus dem frühen V2-Mockup.
+- Symbole: die aus dem bestehenden SYNC-/Node-RED-Design übernommenen Leuchtentypen – Deckenleuchte, horizontale 3-LED-Seitenleuchte, quadratische 2-x-2-Heckleuchte, Frontleiste, Warnleiste und Fernlichtscheinwerfer. Die verworfene `Rail Light`-Familie ist entfernt. Auch die allgemeinen Linienicons besitzen eine lokale Inline-Fassung; die Bedienoberfläche bleibt ohne Lucide-CDN vollständig sichtbar.
+- Klima: reduzierte Geräteansicht ohne wiederholte Kategorien; Home benennt die Funktion eindeutig als `Klimaautomatik` und zeigt Autoterm sowie MaxxFan als zugehörige Geräte. Das Autoterm-Zeitlimit ist optional und standardmäßig eingeklappt.
+- Energie: kombinierte Seite `12 V & 230 V` mit fünf tatsächlichen Verbrauchern und zweite Seite `Quellen`. Icons, Fläche, Kontur und Farbe zeigen den Zustand; Kanalnummern sowie sichtbare Ein-/Aus-/Online-Texte entfallen. Die Lichtmaschinenkarte besitzt echte Felder für Leistung, Spannung und Strom und zeigt bei fehlendem Orion-Dienst bewusst Striche statt erfundener Messwerte.
+- Solar: `Solar gesamt` öffnet eine eigene Detailansicht mit drei realen MPPT-Reglern und INDEVOLT. Home und die Quellenkarte führen direkt dorthin; ein Zurück-Pfeil führt wieder zu den Quellen.
+- Allgemein: Seitentitel, Geräte- und Statusbezeichnungen werden nicht mehrfach wiederholt. Der Header verwendet wieder die konkrete Ford-Transit-3/4-Silhouette aus dem bestehenden CamperControl-Entwurf statt eines generischen Bus-Symbols.
+- Zustand: Home-Schnellzugriffe, Lichtkarten, Szenen und Fahrzeug-Hotspots verwenden im Prototyp ein gemeinsames Lichtmodell und können nicht mehr auseinanderlaufen.
+- Responsive: neben dem hohen Mobilraster gibt es eine kompakte 601-bis-720-px-Stufe für kleine WASM-Fenster; die Touch-50-Geometrie bleibt unverändert.
 
 ## Dateien
 
 - `campercontrol-v2-transit-horizon.html`: Inline-Fragment für die interaktive Designprüfung.
 - `campercontrol-v2-transit-horizon-standalone.html`: direkt im Browser öffnende Fassung.
+- `transit-line-symbol-source.png`: unveränderte hochauflösende Quellgrafik des wiedergefundenen Ford-Transit-Liniensymbols.
+- `transit-line-symbol-dark.png` und `transit-line-symbol-light.png`: exakte, ausschließlich mechanisch ausgeschnittene Header-Symbole aus dem ursprünglichen Doppelmockup; keine Neuzeichnung.
 - `campercontrol-v2-light-modern-touch50.png`: geprüfte 800-x-480-Browserreferenz der Lichtseite.
 - `campercontrol-v2-energy-modern-touch50.png`: geprüfte 800-x-480-Browserreferenz der Energieseite.
+- `campercontrol-v2-solar-detail-touch50.png`: geprüfte 800-x-480-Browserreferenz der Solar-Detailansicht.
 
 ## Datenhinweis
 
