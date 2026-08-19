@@ -4,6 +4,14 @@ Versionierte, reproduzierbare Auslieferungen der CamperControl-Oberflächen.
 
 Dieses Repository ergänzt die drei Quellcode-Repositories. Es enthält die tatsächlich gebauten Pakete, die zugehörigen Deployment- und Prüfwerkzeuge, Produktionsbilder, Designreferenzen und Touch-50-Screenshots. Passwörter, SSH-Schlüssel und gerätespezifische Zugangsdaten dürfen hier nicht abgelegt werden.
 
+## Aktuelles Release
+
+`releases/2026-08-19-v3.80-beta39-design-v1-v2` enthält den auswählbaren
+CamperControl-V1/V2-Stand für GX Touch 50, Remote Console/WASM, Ford SYNC und
+Node-RED. V2 ist der native Port der eingefrorenen Transit-Horizon-Referenz; V1
+bleibt vollständig erreichbar. Vor einer Installation immer zuerst das dortige
+`tools/verify-release.ps1` ausführen.
+
 ## Repositories der Quellen
 
 - `camper-gui-v2`: angepasste Victron-GX- und WASM-Oberfläche
@@ -21,4 +29,3 @@ Jede Releasebeschreibung pinnt die genauen Quell-Commits. Große Binärdateien u
 - `tools/`: exakt zum Release gehörende Deployment- und Prüfskripte
 - `release.json`: Firmware-, Commit- und Buildzuordnung
 - `checksums.sha256`: Integritätsprüfung der wichtigsten Dateien
-

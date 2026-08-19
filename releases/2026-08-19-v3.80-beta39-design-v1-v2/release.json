@@ -1,0 +1,108 @@
+{
+  "release": "2026-08-19-v3.80-beta39-design-v1-v2",
+  "created": "2026-08-19T19:27:41+02:00",
+  "deployed": false,
+  "targets": [
+    "Cerbo GX / GX Touch 50",
+    "Victron Remote Console / WASM",
+    "Ford SYNC 3.4 / FMods",
+    "Node-RED Dashboard"
+  ],
+  "compatibility": {
+    "cerboArchitecture": "armv7l",
+    "venusOs": "v3.80~39",
+    "venusOsBuild": "20260716174100",
+    "guiV2": "1.3.14",
+    "qt": "6.8.3",
+    "gxSdk": "venus-scarthgap-x86_64-arm-cortexa8hf-neon-toolchain-v3.80~39.sh",
+    "emscripten": "3.1.56"
+  },
+  "designs": {
+    "available": [
+      "v1",
+      "v2"
+    ],
+    "default": "v2",
+    "selectionIsPersisted": true,
+    "selectionIsSynchronizedAcrossTargets": false
+  },
+  "sourceCommits": {
+    "camper-gui-v2": "04569a3209bedac1077175d8d48b2f418f646930",
+    "campercontrol-node-red": "a7c32ba00a2567c2c5f96141b899a1d5c70b5d5d",
+    "sync3-camper": "f7aa173014f0a784a3d447bf1afc6b0149dd3a6d",
+    "design-source": "6e279f085984bbc0ed5df2d11d1d215e9a09c4a1"
+  },
+  "designSource": {
+    "path": "assets/design-source/campercontrol-v2-transit-horizon.html",
+    "sha256": "d6e8b6b39e451533865627e2295ada5b868055184acc517c1395ad096fca1c5b"
+  },
+  "builds": {
+    "gx": {
+      "command": "./scripts/build-gx.sh --preserve",
+      "result": "success",
+      "seconds": 635
+    },
+    "wasm": {
+      "command": "./scripts/build-wasm.sh --preserve",
+      "result": "success",
+      "seconds": 608
+    }
+  },
+  "artifacts": {
+    "gxArchive": {
+      "path": "artifacts/gx/camper-gui-v2-gx.tar.gz",
+      "files": 938,
+      "bytes": 7244884,
+      "archiveSha256": "21a9fb4dcb57d3e934d556cf450e8b745d83b30c1c19b8cb0e92dbd3d65fe11e",
+      "binaryPath": "venus-gui-v2",
+      "binaryBytes": 10236332,
+      "binarySha256": "418c2d7d26d531a9ae870cef2f3b75655365edbe9b981adead2328919c7ff643",
+      "requiredFiles": [
+        "Victron/VenusOS/pages/camper/CamperShell.qml",
+        "Victron/VenusOS/components/camper/CamperDesignSettings.qml",
+        "Victron/VenusOS/pages/camper/CamperSystem.qml",
+        "Victron/VenusOS/pages/settings/PageCamperSettings.qml",
+        "Victron/VenusOS/pages/camper/v2/CamperV2Shell.qml",
+        "Victron/VenusOS/pages/camper/v2/CamperV2Lights.qml",
+        "Victron/VenusOS/pages/camper/v2/CamperV2Energy.qml"
+      ]
+    },
+    "wasmArchive": {
+      "path": "artifacts/wasm/camper-gui-v2-wasm.tar.gz",
+      "files": 21,
+      "bytes": 17130986,
+      "archiveSha256": "fd36b4bae0f966fe37f735e26c56b666d7ead7b33c3ce7b62896a5da0d4c7e85",
+      "wasmGzipPath": "venus-gui-v2.wasm.gz",
+      "wasmGzipBytes": 16973413,
+      "wasmGzipSha256": "02aeaf22588f0bbe98e5da391668a95f33eb46500984259f0987541906be4dca",
+      "wasmBytes": 37307523,
+      "wasmSha256": "2647d985e36bf3879607b4c1e96b98609e238df47470e9d16024970d427529ec",
+      "javascriptSha256": "e9f7737f8a43016d621378e8335eb8b5804ea1b1de7509b5e57356431956341b"
+    },
+    "syncArchive": {
+      "path": "artifacts/sync/CamperControl-SYNC3-v3.11.0.zip",
+      "version": "3.11.0",
+      "entries": 63,
+      "bytes": 4080743,
+      "archiveSha256": "a22cd1a35b6fe6fbd27203ab149dd60b115258d8dcad764a24339d639c97f41e"
+    },
+    "nodeRedFlow": {
+      "path": "artifacts/node-red/CamperControl_NodeRED.json",
+      "version": "4.2.0",
+      "nodes": 358,
+      "assertions": 1378,
+      "failures": 0,
+      "bytes": 681911,
+      "sha256": "6591f299e6c9d8f392812f239fecdcc24e21bb32bcda7553ed63d0ba07ed35cc"
+    }
+  },
+  "validation": {
+    "qmlFormat": "pass",
+    "qmlLint": "pass",
+    "touchAndCommandSmoke": "pass",
+    "nodeRedFunctionsSyntaxChecked": 61,
+    "nodeRedWiresChecked": 378,
+    "hardwareDeploymentPerformed": false,
+    "liveHardwareControlRoundTripPerformed": false
+  }
+}
