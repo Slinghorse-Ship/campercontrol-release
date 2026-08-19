@@ -1,0 +1,23 @@
+{
+  "schema": "campercontrol-compatibility-matrix-v1",
+  "knownFirmware": [
+    {
+      "venusVersion": "v3.80~39",
+      "venusBuild": "20260716174100",
+      "architecture": "armv7l",
+      "guiV2Version": "1.3.14-r0",
+      "qtVersion": "6.8.3",
+      "gxSdk": "venus-scarthgap-x86_64-arm-cortexa8hf-neon-toolchain-v3.80~39.sh",
+      "emscriptenVersion": "3.1.56",
+      "guiRepositoryCommit": "2118cc7333663d21206f88701806fb0e7bdb60f3",
+      "contracts": [
+        "tests/camper_vrm_transport_contract.py",
+        "tools/camper-preview/smoke_test.py"
+      ],
+      "buildScripts": [
+        "scripts/build-gx.sh",
+        "scripts/build-wasm.sh"
+      ]
+    }
+  ]
+}
