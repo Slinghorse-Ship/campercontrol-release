@@ -1,0 +1,10 @@
+*.log
+*.tmp
+*.key
+*.pem
+*askpass*
+credentials*
+secrets*
+staging/
+extracted/
+

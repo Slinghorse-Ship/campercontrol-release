@@ -1,0 +1,41 @@
+{
+  "release": "2026-08-19-v3.80-beta39-full-pages",
+  "created": "2026-08-19T14:30:00+02:00",
+  "target": "Cerbo GX with GX Touch 50 and Remote Console",
+  "venusOs": "v3.80~39",
+  "sourceCommits": {
+    "camper-gui-v2": "4716d4d458b9fd7301ad092fae529eeb62a0aaec",
+    "campercontrol-node-red": "28009b9f2ac3e342f199ca898f42a2956ccac1e6",
+    "sync3-camper": "13c8d06016dc426d4b3ecc3ae0891d325143f56b"
+  },
+  "artifacts": {
+    "gxArchive": {
+      "path": "artifacts/gx/camper-gui-v2-gx.tar.gz",
+      "files": 920,
+      "archiveSha256": "3889bc8e5b153ddf789f7013f7fbe4d6097d82486d3fae3f4934a82bf2004cbd",
+      "binarySha256": "91a59afd7c9d2d6e87480fd7a7b6f56e3e817a1743c87dd6e58d643a3f2bd9e5"
+    },
+    "wasmArchive": {
+      "path": "artifacts/wasm/camper-gui-v2-wasm.tar.gz",
+      "files": 21,
+      "archiveSha256": "1b65a6c176700f68b244e03b944f42f28ae64a9aca62de2886cf3e7e6e2852d9",
+      "wasmGzipSha256": "5a921be6260b9908dc6e21ceb6f1452cb7d5d89c28d9571aa8cc14b1a37096af"
+    },
+    "syncArchive": {
+      "path": "artifacts/sync/sync3-camper-mod.tar.gz",
+      "archiveSha256": "1c959b8969bdb7e5a49dfc5b677ad992cde76fdaec519113eb2209a5ddf81983"
+    },
+    "nodeRedFlow": {
+      "path": "artifacts/node-red/CamperControl_NodeRED.json",
+      "nodes": 358,
+      "assertions": 1267,
+      "failures": 0,
+      "sha256": "69fcc2ff2b5183e0f46a8bac29f91721fb7a42b1bf705e5ac4bd832bb6cd6e77"
+    }
+  },
+  "onDeviceBackups": {
+    "gx": "/opt/victronenergy/gui-v2.pre-full-pages-20260819-135532",
+    "wasm": "/var/www/venus/gui-v2.pre-full-pages-20260819-141105"
+  }
+}
+
