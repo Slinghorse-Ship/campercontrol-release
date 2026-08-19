@@ -12,6 +12,7 @@ Interaktiver Arbeitsstand für die nächste CamperControl-Oberfläche. Dieser Or
 ## Aktueller Umfang
 
 - Licht: sechs reale STAR-Power-Kreise, Szenen, getrennte Auswahl- und Schaltflächen, permanenter Dimmer für die gewählte dimmbare Zone und passive Transit-Darstellung ohne Hotspots.
+- Transit: Das originale Fahrerfoto bleibt pixelgleich; eine separate SVG-Ebene ergänzt ausschließlich den im Foto fehlenden zweiten Schiebetürgriff. Heck, Rückleuchte, Heckarbeitsleuchte, Dachträgerleuchten und Markise werden nicht verändert.
 - Symbole: eigene 24-x-24-Monoline-Familie `Rail Light` für Navigation, Innenraum, links, rechts, hinten, Tagfahrlicht und Warnlicht.
 - Klima: Autoterm-Zeitlimit ist optional und standardmäßig eingeklappt.
 - Energie: kombinierte Seite `12 V & 230 V` und zweite Seite `Quellen`.
