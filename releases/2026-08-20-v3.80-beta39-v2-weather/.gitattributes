@@ -1,0 +1,8 @@
+/.gitattributes text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+run text eol=lf
+checksums.sha256 text eol=lf
+*.tar.gz binary
+*.zip binary
+*.png binary
