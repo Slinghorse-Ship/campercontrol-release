@@ -12,6 +12,44 @@ context_root=/data/home/nodered/.node-red/context
 service=/service/node-red-venus
 backup_dir=/data/campercontrol/backups
 
+probe_node_state() {
+	python3 - <<'PY' &
+import json
+import signal
+import urllib.request
+
+
+def alarm_handler(_signum, _frame):
+    raise TimeoutError("Node-RED state probe timed out")
+
+
+signal.signal(signal.SIGALRM, alarm_handler)
+signal.alarm(5)
+try:
+    with urllib.request.urlopen("http://127.0.0.1:1880/camper/api/v2/state", timeout=3) as response:
+        payload = response.read(1024 * 1024 + 1)
+        if response.status != 200 or len(payload) > 1024 * 1024:
+            raise RuntimeError("invalid Node-RED state response")
+        document = json.loads(payload)
+        if not isinstance(document, dict):
+            raise RuntimeError("Node-RED state is not an object")
+finally:
+    signal.alarm(0)
+PY
+	probe_pid=$!
+	(
+		sleep 6
+		kill -TERM "$probe_pid" 2>/dev/null || true
+		sleep 1
+		kill -KILL "$probe_pid" 2>/dev/null || true
+	) >/dev/null 2>&1 &
+	watchdog_pid=$!
+	if wait "$probe_pid"; then probe_status=0; else probe_status=$?; fi
+	kill "$watchdog_pid" 2>/dev/null || true
+	wait "$watchdog_pid" 2>/dev/null || true
+	return "$probe_status"
+}
+
 if [ "$#" -ne 1 ] || [ "$1" != "$confirmation" ]; then
 	printf '%s\n' "Explicit confirmation required: $0 $confirmation" >&2
 	exit 2
@@ -95,12 +133,12 @@ svc -u "$service"
 service_stopped=0
 i=0
 while [ "$i" -lt 30 ]; do
-	if wget -q -T 3 -O /dev/null http://127.0.0.1:1880/camper/api/v2/state 2>/dev/null; then break; fi
+	if probe_node_state >/dev/null 2>&1; then break; fi
 	sleep 2
 	i=$((i + 1))
 done
 svstat "$service" | grep -q ': up '
-wget -q -T 3 -O /dev/null http://127.0.0.1:1880/camper/api/v2/state
+probe_node_state
 trap - EXIT HUP INT TERM
 
 printf 'NODE_RED_CONTEXT_TMP_CLEANUP_OK\n'

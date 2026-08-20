@@ -325,6 +325,16 @@ $contextCleanupContent = Get-Content -LiteralPath (Resolve-ReleaseFile "tools/ar
 if (-not $contextCleanupContent.Contains('http://127.0.0.1:1880/camper/api/v2/state')) {
     throw 'Node-RED context cleanup does not wait for the Camper state endpoint'
 }
+foreach ($boundedHttpScript in @(
+    @{ Name = 'health'; Content = (Get-Content -LiteralPath (Resolve-ReleaseFile "tools/campercontrol-health-readonly.sh") -Raw) },
+    @{ Name = 'Node-RED deploy'; Content = $nodeDeployContent },
+    @{ Name = 'context cleanup'; Content = $contextCleanupContent }
+)) {
+    if ($boundedHttpScript.Content.Contains('wget ') -or
+        -not $boundedHttpScript.Content.Contains('signal.alarm(5)')) {
+        throw "$($boundedHttpScript.Name) local HTTP probe is not hard-time-bounded"
+    }
+}
 foreach ($runitScript in @(
     @{ Name = 'service installer'; Content = $serviceInstallContent },
     @{ Name = 'Node-RED deploy'; Content = $nodeDeployContent },

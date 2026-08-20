@@ -178,8 +178,16 @@ if command -v dbus >/dev/null 2>&1; then
 	emit WEATHER_ERROR "$(dbus -y com.victronenergy.campercontrol /Status/WeatherError GetValue 2>&1 || true)"
 	weather_raw=$(dbus -y com.victronenergy.campercontrol /State/Weather GetValue 2>/dev/null || true)
 	if printf '%s' "$weather_raw" | grep -q '"hourly"'; then weather_status=ready; elif [ -n "$weather_raw" ]; then weather_status=empty-or-invalid; else weather_status=missing; fi
-	emit ORION_DBUS_MODE "$(dbus -y com.victronenergy.alternator/289 /Mode GetValue 2>&1 || true)"
-	emit SHELLY_DBUS_STATE "$(dbus -y com.victronenergy.acload/50 /SwitchableOutput/0/State GetValue 2>&1 || true)"
+	orion_service=$(dbus -y com.victronenergy.system /ServiceMapping/com_victronenergy_alternator_289 GetValue 2>/dev/null | tr -d "'\"" || true)
+	case "$orion_service" in
+		com.victronenergy.*) emit ORION_DBUS_MODE "$(dbus -y "$orion_service" /Mode GetValue 2>&1 || true)" ;;
+		*) emit ORION_DBUS_MODE unavailable ;;
+	esac
+	shelly_service=$(dbus -y com.victronenergy.system /ServiceMapping/com_victronenergy_acload_50 GetValue 2>/dev/null | tr -d "'\"" || true)
+	case "$shelly_service" in
+		com.victronenergy.*) emit SHELLY_DBUS_STATE "$(dbus -y "$shelly_service" /SwitchableOutput/0/State GetValue 2>&1 || true)" ;;
+		*) emit SHELLY_DBUS_STATE unavailable ;;
+	esac
 else
 	emit CAMPER_DBUS_API_CONNECTED unavailable
 	emit WEATHER_LAST_UPDATE unavailable
@@ -208,18 +216,75 @@ emit VRM_LOGGER "$vrm_logger"
 node_api=unreachable
 node_flow_count=unavailable
 node_state_summary=unavailable
-if command -v wget >/dev/null 2>&1; then
-	if wget -q -T 3 -O /dev/null http://127.0.0.1:1880/camper/api/v2/state 2>/dev/null; then node_api=reachable; fi
-	if command -v python3 >/dev/null 2>&1; then
-		node_flow_count=$(wget -q -T 3 -O - http://127.0.0.1:1880/flows 2>/dev/null | python3 -c 'import json,sys
+if command -v python3 >/dev/null 2>&1; then
+	bounded_node_probe() {
+		python3 - <<'PY' &
+import json
+import signal
+import urllib.request
+
+
+def alarm_handler(_signum, _frame):
+    raise TimeoutError("local HTTP probe timed out")
+
+
+def load(path, limit):
+    signal.alarm(5)
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:1880" + path, timeout=3) as response:
+            payload = response.read(limit + 1)
+            if response.status != 200 or len(payload) > limit:
+                raise RuntimeError("invalid local HTTP response")
+            return json.loads(payload)
+    finally:
+        signal.alarm(0)
+
+
+signal.signal(signal.SIGALRM, alarm_handler)
+state = None
+flows = None
 try:
- d=json.load(sys.stdin); f=d.get("flows",[]) if isinstance(d,dict) else d; print(len(f) if isinstance(f,list) else "invalid")
-except Exception: print("unavailable")' 2>/dev/null || printf unavailable)
-		node_state_summary=$(wget -q -T 3 -O - http://127.0.0.1:1880/camper/api/v2/state 2>/dev/null | python3 -c 'import json,sys
-try:
- d=json.load(sys.stdin); e=d.get("energy",{}); o=e.get("orion",{}); g=e.get("indevolt",{}).get("gridConnection",{}); print("orion_online=%s;orion_mode=%s;orion_state=%s;shelly_available=%s;shelly_on=%s"%(o.get("online"),o.get("mode"),o.get("stateText"),g.get("available"),g.get("on")))
-except Exception: print("unavailable")' 2>/dev/null || printf unavailable)
-	fi
+    state = load("/camper/api/v2/state", 1024 * 1024)
+except Exception:
+    pass
+if isinstance(state, dict):
+    try:
+        flows = load("/flows", 4 * 1024 * 1024)
+    except Exception:
+        pass
+print("reachable" if isinstance(state, dict) else "unreachable")
+flow_items = flows.get("flows", []) if isinstance(flows, dict) else flows
+print(len(flow_items) if isinstance(flow_items, list) else "unavailable")
+if isinstance(state, dict):
+    energy = state.get("energy", {})
+    orion = energy.get("orion", {})
+    grid = energy.get("indevolt", {}).get("gridConnection", {})
+    print("orion_online=%s;orion_mode=%s;orion_state=%s;shelly_available=%s;shelly_on=%s" % (
+        orion.get("online"), orion.get("mode"), orion.get("stateText"), grid.get("available"), grid.get("on")
+    ))
+else:
+    print("unavailable")
+PY
+		probe_pid=$!
+		(
+			sleep 12
+			kill -TERM "$probe_pid" 2>/dev/null || true
+			sleep 1
+			kill -KILL "$probe_pid" 2>/dev/null || true
+		) >/dev/null 2>&1 &
+		watchdog_pid=$!
+		if wait "$probe_pid"; then probe_status=0; else probe_status=$?; fi
+		kill "$watchdog_pid" 2>/dev/null || true
+		wait "$watchdog_pid" 2>/dev/null || true
+		return "$probe_status"
+	}
+	node_probe=$(bounded_node_probe 2>/dev/null || true)
+	node_api=$(printf '%s\n' "$node_probe" | sed -n '1p')
+	node_flow_count=$(printf '%s\n' "$node_probe" | sed -n '2p')
+	node_state_summary=$(printf '%s\n' "$node_probe" | sed -n '3p')
+	[ -n "$node_api" ] || node_api=unreachable
+	[ -n "$node_flow_count" ] || node_flow_count=unavailable
+	[ -n "$node_state_summary" ] || node_state_summary=unavailable
 fi
 emit NODE_RED_API "$node_api"
 emit NODE_RED_FLOW_COUNT "$node_flow_count"

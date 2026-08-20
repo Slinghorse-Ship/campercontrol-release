@@ -17,6 +17,44 @@ backup_dir=/data/campercontrol/backups
 expected_hash=bd0b68e0a9606c660396a0869a0820a664f17592790fdce645e78b005b4f995c
 expected_nodes=358
 
+probe_node_state() {
+	python3 - <<'PY' &
+import json
+import signal
+import urllib.request
+
+
+def alarm_handler(_signum, _frame):
+    raise TimeoutError("Node-RED state probe timed out")
+
+
+signal.signal(signal.SIGALRM, alarm_handler)
+signal.alarm(5)
+try:
+    with urllib.request.urlopen("http://127.0.0.1:1880/camper/api/v2/state", timeout=3) as response:
+        payload = response.read(1024 * 1024 + 1)
+        if response.status != 200 or len(payload) > 1024 * 1024:
+            raise RuntimeError("invalid Node-RED state response")
+        document = json.loads(payload)
+        if not isinstance(document, dict):
+            raise RuntimeError("Node-RED state is not an object")
+finally:
+    signal.alarm(0)
+PY
+	probe_pid=$!
+	(
+		sleep 6
+		kill -TERM "$probe_pid" 2>/dev/null || true
+		sleep 1
+		kill -KILL "$probe_pid" 2>/dev/null || true
+	) >/dev/null 2>&1 &
+	watchdog_pid=$!
+	if wait "$probe_pid"; then probe_status=0; else probe_status=$?; fi
+	kill "$watchdog_pid" 2>/dev/null || true
+	wait "$watchdog_pid" 2>/dev/null || true
+	return "$probe_status"
+}
+
 case "$expected_hash:$expected_nodes" in
 	*__PENDING_*)
 		printf '%s\n' 'DEPLOY_BLOCKED_RELEASE_NOT_FINAL: Node-RED hash/count placeholders are unresolved.' >&2
@@ -149,11 +187,11 @@ service_stopped=0
 
 i=0
 while [ "$i" -lt 30 ]; do
-	if wget -q -T 3 -O /dev/null http://127.0.0.1:1880/camper/api/v2/state 2>/dev/null; then break; fi
+	if probe_node_state >/dev/null 2>&1; then break; fi
 	sleep 2
 	i=$((i + 1))
 done
-wget -q -T 3 -O /dev/null http://127.0.0.1:1880/camper/api/v2/state
+probe_node_state
 svstat "$service" | grep -q ': up '
 active_hash=$(sha256sum "$active" | awk '{print $1}')
 test "$active_hash" = "$expected_hash"
