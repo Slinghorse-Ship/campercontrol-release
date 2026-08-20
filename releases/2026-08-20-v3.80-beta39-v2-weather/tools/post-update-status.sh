@@ -33,8 +33,20 @@ modifications=$(fact VENUS_MODIFICATIONS)
 root_free_kb=$(fact ROOT_FREE_KB)
 
 release_finalized=1
-for pending_file in "$release_root/release.json" "$release_root/tools/deploy-node-red.sh" "$release_root/tools/archive-node-red-context-tmp.sh"; do
-	if [ ! -f "$pending_file" ] || grep -q '__PENDING_' "$pending_file"; then release_finalized=0; fi
+if [ ! -f "$release_root/release.json" ] || grep -q '__PENDING_[A-Z0-9_]*__' "$release_root/release.json"; then
+	release_finalized=0
+fi
+for finalized_script in "$release_root/tools/deploy-node-red.sh" "$release_root/tools/archive-node-red-context-tmp.sh"; do
+	if [ ! -f "$finalized_script" ]; then
+		release_finalized=0
+		continue
+	fi
+	finalized_flow_hash=$(sed -n -e 's/^expected_hash=//p' -e 's/^expected_flow_hash=//p' "$finalized_script" | head -n 1 | tr -d "'\"")
+	case "$finalized_flow_hash" in
+		''|__PENDING_*) release_finalized=0 ;;
+		*[!0-9a-f]*) release_finalized=0 ;;
+		*) [ "${#finalized_flow_hash}" -eq 64 ] || release_finalized=0 ;;
+	esac
 done
 
 reinstall_allowed=1

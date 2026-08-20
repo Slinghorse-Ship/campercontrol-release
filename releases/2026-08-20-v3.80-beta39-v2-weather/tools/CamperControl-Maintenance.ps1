@@ -467,7 +467,10 @@ function Invoke-ApplyRelease {
         $scpArguments.Add("$SshUser@${CerboHost}:$stage")
         & $scp.Source @scpArguments
         if ($LASTEXITCODE -ne 0) { throw "SCP failed with exit code $LASTEXITCODE." }
-        $install = Invoke-SshCommand -RemoteCommand "'$stage/tools/install-persistent-release.sh'"
+        # Files copied from a Windows checkout do not retain the Unix execute bit.
+        # The installer validates every checksum before it makes its atomic copy
+        # and assigns the final executable modes inside the persistent store.
+        $install = Invoke-SshCommand -RemoteCommand "sh '$stage/tools/install-persistent-release.sh'"
         $install.Output | ForEach-Object { Write-Host $_ }
         $cleanupIncoming = Invoke-SshCommand -RemoteCommand "case '$stage' in '$incomingParent/$script:ReleaseId') test -d '$stage' && test ! -L '$stage' && rm -rf '$stage' ;; *) exit 9 ;; esac"
         $cleanupIncoming.Output | ForEach-Object { Write-Host $_ }
