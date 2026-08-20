@@ -312,14 +312,21 @@ if ($servicePosition -lt 0 -or $nodePosition -le $servicePosition -or $gxPositio
 foreach ($rollbackContract in @(
     'stop_linked_service',
     'old_service_was_up',
+    'old_service_had_dir',
     'wait_service_up "$service_link"',
     'validate_bridge_identity',
     'weather snapshot exceeds 16 KiB',
-    'test ! -L "$service_root"'
+    'test ! -L "$service_root"',
+    'mv "$candidate/campercontrol-dbus-service/run" "$service_dir/run"',
+    'mv "$service_dir/run" "$rollback/campercontrol-dbus-service/run"'
 )) {
     if (-not $serviceInstallContent.Contains($rollbackContract)) {
         throw "Service process rollback/weather contract missing: $rollbackContract"
     }
+}
+if ($serviceInstallContent -match 'for relative in[^\r\n]*campercontrol-dbus-service;' -or
+    $serviceInstallContent.Contains('rm -rf "$service_root/$relative"')) {
+    throw 'Service installer must preserve the runit service-directory/supervise inode during updates'
 }
 $contextCleanupContent = Get-Content -LiteralPath (Resolve-ReleaseFile "tools/archive-node-red-context-tmp.sh") -Raw
 if (-not $contextCleanupContent.Contains('http://127.0.0.1:1880/camper/api/v2/state')) {

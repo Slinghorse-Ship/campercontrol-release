@@ -19,6 +19,8 @@ committed=0
 swap_started=0
 old_service_had_link=0
 old_service_was_up=0
+old_service_had_dir=0
+old_service_had_run=0
 
 wait_service_down() {
 	path=$1
@@ -103,20 +105,9 @@ cleanup() {
 			stop_linked_service || true
 		fi
 		if [ "$swap_started" -eq 1 ] && [ -d "$rollback" ]; then
-			for relative in campercontrol-dbus.py campercontrol_weather.py ensure-campercontrol-dbus.sh install-campercontrol-dbus.sh campercontrol-dbus-service; do
-				case "$service_root/$relative" in
-					/data/campercontrol/service/*) rm -rf "$service_root/$relative" ;;
-					*) printf '%s\n' 'REFUSING_UNEXPECTED_SERVICE_ROLLBACK_TARGET' >&2 ;;
-				esac
-				[ -e "$rollback/$relative" ] && mv "$rollback/$relative" "$service_root/$relative"
-			done
-			if [ -f "$rollback/rc.local" ]; then
-				cp -p "$rollback/rc.local" /data/rc.local
-			elif [ -f "$rollback/rc.local.was-missing" ]; then
-				rm -f /data/rc.local
-			fi
-		fi
-		if [ "$swap_started" -eq 1 ] && [ -d "$rollback" ]; then
+			# Restore the service link before touching a first-install directory.
+			# On updates the link and directory inode stay unchanged so runsv keeps
+			# its supervise/control endpoint throughout the file swap.
 			if [ -f "$rollback/service-link.was-missing" ]; then
 				[ ! -L "$service_link" ] || rm "$service_link"
 			elif [ -f "$rollback/service-link.target" ]; then
@@ -124,6 +115,38 @@ cleanup() {
 				if [ -L "$service_link" ] && [ "$(readlink "$service_link")" != "$old_target" ]; then rm "$service_link"; fi
 				[ -L "$service_link" ] || ln -s "$old_target" "$service_link"
 			fi
+
+			for relative in campercontrol-dbus.py campercontrol_weather.py ensure-campercontrol-dbus.sh install-campercontrol-dbus.sh; do
+				case "$service_root/$relative" in
+					/data/campercontrol/service/*) rm -f "$service_root/$relative" ;;
+					*) printf '%s\n' 'REFUSING_UNEXPECTED_SERVICE_ROLLBACK_TARGET' >&2 ;;
+				esac
+				[ ! -e "$rollback/$relative" ] || mv "$rollback/$relative" "$service_root/$relative"
+			done
+
+			if [ "$old_service_had_dir" -eq 1 ]; then
+				test -d "$service_dir"
+				test ! -L "$service_dir"
+				rm -f "$service_dir/run"
+				if [ "$old_service_had_run" -eq 1 ]; then
+					test -f "$rollback/campercontrol-dbus-service/run"
+					mv "$rollback/campercontrol-dbus-service/run" "$service_dir/run"
+				fi
+			else
+				case "$service_dir" in
+					/data/campercontrol/service/campercontrol-dbus-service)
+						if [ -e "$service_dir" ]; then test -d "$service_dir"; test ! -L "$service_dir"; rm -rf "$service_dir"; fi
+						;;
+					*) printf '%s\n' 'REFUSING_UNEXPECTED_FIRST_INSTALL_ROLLBACK_TARGET' >&2 ;;
+				esac
+			fi
+
+			if [ -f "$rollback/rc.local" ]; then
+				cp -p "$rollback/rc.local" /data/rc.local
+			elif [ -f "$rollback/rc.local.was-missing" ]; then
+				rm -f /data/rc.local
+			fi
+
 			if [ "$old_service_had_link" -eq 1 ]; then
 				if [ "$old_service_was_up" -eq 1 ]; then
 					svc -u "$service_link" >/dev/null 2>&1 || true
@@ -194,6 +217,16 @@ if [ -L "$service_link" ]; then
 	old_service_had_link=1
 	if svstat "$service_link" 2>/dev/null | grep -q ': up '; then old_service_was_up=1; fi
 fi
+if [ -e "$service_dir" ]; then
+	test -d "$service_dir"
+	test ! -L "$service_dir"
+	old_service_had_dir=1
+	if [ -e "$service_dir/run" ]; then
+		test -f "$service_dir/run"
+		test ! -L "$service_dir/run"
+		old_service_had_run=1
+	fi
+fi
 
 same=1
 for relative in campercontrol-dbus.py campercontrol_weather.py ensure-campercontrol-dbus.sh install-campercontrol-dbus.sh campercontrol-dbus-service/run; do
@@ -239,10 +272,20 @@ mkdir -p "$service_root"
 test -d "$service_root"
 test ! -L "$service_root"
 swap_started=1
-for relative in campercontrol-dbus.py campercontrol_weather.py ensure-campercontrol-dbus.sh install-campercontrol-dbus.sh campercontrol-dbus-service; do
+for relative in campercontrol-dbus.py campercontrol_weather.py ensure-campercontrol-dbus.sh install-campercontrol-dbus.sh; do
 	[ ! -e "$service_root/$relative" ] || mv "$service_root/$relative" "$rollback/$relative"
 	mv "$candidate/$relative" "$service_root/$relative"
 done
+if [ "$old_service_had_dir" -eq 1 ]; then
+	mkdir "$rollback/campercontrol-dbus-service"
+	if [ "$old_service_had_run" -eq 1 ]; then
+		mv "$service_dir/run" "$rollback/campercontrol-dbus-service/run"
+	fi
+	mv "$candidate/campercontrol-dbus-service/run" "$service_dir/run"
+	rmdir "$candidate/campercontrol-dbus-service"
+else
+	mv "$candidate/campercontrol-dbus-service" "$service_dir"
+fi
 rmdir "$candidate"
 
 "$service_root/install-campercontrol-dbus.sh"

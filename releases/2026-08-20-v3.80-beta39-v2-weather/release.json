@@ -12,7 +12,7 @@
   },
   "sourceCommits": {
     "camper-gui-v2": "ee6a8f8897832d3e63ffbe98ffdd4389708dfc1e",
-    "campercontrol-node-red": "458921008943f9d5d426c35b16f62a09104fdb0c",
+    "campercontrol-node-red": "2c47cc527884c3203a38466ca4af76b42722b810",
     "sync3-camper": "1a029819dadb86ee9f62d5e02aa3274c66e5f59d"
   },
   "artifactFreeze": {
