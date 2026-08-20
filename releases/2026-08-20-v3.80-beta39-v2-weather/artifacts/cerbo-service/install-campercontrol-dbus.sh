@@ -34,9 +34,18 @@ elif ! grep -Fqx "$START_LINE" "$RC_LOCAL"; then
     mv "$TEMP" "$RC_LOCAL"
 fi
 
+service_was_up=0
+if [ -L "$SERVICE_LINK" ] && svstat "$SERVICE_LINK" 2>/dev/null | grep -q ': up '; then
+    service_was_up=1
+fi
+
 "$START_LINE"
-# `svc -u` in the idempotent ensure script does not reload an already-running
-# bridge.  A TERM keeps runit's desired state "up", so upgrades immediately
-# start the newly installed bridge/provider while first installs remain safe.
-svc -t "$SERVICE_LINK" >/dev/null 2>&1 || svc -u "$SERVICE_LINK" >/dev/null 2>&1 || true
+# `svc -u` in the idempotent ensure script starts a stopped/first-install
+# service.  Send TERM only when a bridge was already up before ensure; doing so
+# unconditionally would terminate the just-started process during validation.
+if [ "$service_was_up" -eq 1 ]; then
+    svc -t "$SERVICE_LINK" >/dev/null 2>&1 || true
+else
+    svc -u "$SERVICE_LINK" >/dev/null 2>&1 || true
+fi
 exit 0

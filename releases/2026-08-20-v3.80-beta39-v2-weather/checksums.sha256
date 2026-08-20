@@ -3,7 +3,7 @@
 93196623020e6665f75fc8af70337d967ef10f1377ee3791dcdb7878f6ff185a  artifacts/cerbo-service/campercontrol-dbus-service/run
 37a1d772c5e6d8d98be46e26e33cf7a8d1aa4a53d2a0ea99e8df214c64e26e5c  artifacts/cerbo-service/campercontrol-dbus.py
 f2208bb70a89d5042dc73e842cf89cbed2c4fcd04ed42d11aab06cbb9cb318f3  artifacts/cerbo-service/ensure-campercontrol-dbus.sh
-b22fea8c86cdb26894b7b66bb331f3b15eae0dfe189dcec899e046a0ae995122  artifacts/cerbo-service/install-campercontrol-dbus.sh
+795248c4ad7342e8340d71c1ddded5b9c72693bc3a43b035fcabafe28354cf0b  artifacts/cerbo-service/install-campercontrol-dbus.sh
 ad1d6b2e7505e06a51e05946a8c34469b4d0006a675748dbcbd565d174d13a09  artifacts/gx/camper-gui-v2-gx-v2-weather.tar.gz
 f54f528af869c6f3cc2dec1a7b90ae730b6df1d431f67aeb55328ba1fd6aa605  artifacts/node-red/camper-assets/transit-line-symbol-dark.png
 2b67063319cdb66767cca2229996b9e6161a849eddd6b0941fb5f984cf1a594f  artifacts/node-red/camper-assets/transit-line-symbol-light.png
