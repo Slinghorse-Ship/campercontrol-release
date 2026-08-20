@@ -55,6 +55,16 @@ validate_bridge_identity() {
 	dbus -y com.victronenergy.campercontrol /DeviceInstance GetValue 2>/dev/null | grep -Eq '(^|[^0-9])0([^0-9]|$)'
 }
 
+wait_bridge_identity() {
+	i=0
+	while [ "$i" -lt 45 ]; do
+		if validate_bridge_identity; then return 0; fi
+		sleep 1
+		i=$((i + 1))
+	done
+	validate_bridge_identity
+}
+
 validate_weather_state() {
 	python3 - <<'PY'
 import json
@@ -150,7 +160,7 @@ cleanup() {
 			if [ "$old_service_had_link" -eq 1 ]; then
 				if [ "$old_service_was_up" -eq 1 ]; then
 					svc -u "$service_link" >/dev/null 2>&1 || true
-					if wait_service_up "$service_link" && validate_bridge_identity; then
+					if wait_service_up "$service_link" && wait_bridge_identity; then
 						printf '%s\n' 'CAMPERCONTROL_SERVICE_ROLLBACK_OK' >&2
 					else
 						printf '%s\n' 'CAMPERCONTROL_SERVICE_ROLLBACK_VALIDATION_FAILED' >&2
@@ -237,7 +247,7 @@ done
 if [ "$same" -eq 1 ] && [ -L "$service_link" ] && grep -Fqx "$start_line" /data/rc.local 2>/dev/null; then
 	"$service_root/ensure-campercontrol-dbus.sh"
 	wait_service_up "$service_link"
-	validate_bridge_identity
+	wait_bridge_identity
 	validate_weather_state
 	printf 'CAMPERCONTROL_SERVICE_ALREADY_INSTALLED=%s\n' "$service_root"
 	committed=1
@@ -290,7 +300,7 @@ rmdir "$candidate"
 
 "$service_root/install-campercontrol-dbus.sh"
 wait_service_up "$service_link"
-validate_bridge_identity
+wait_bridge_identity
 dbus -y com.victronenergy.campercontrol /Status/WeatherError GetValue >/dev/null 2>&1
 dbus -y com.victronenergy.campercontrol /State/Weather GetValue >/dev/null 2>&1
 validate_weather_state

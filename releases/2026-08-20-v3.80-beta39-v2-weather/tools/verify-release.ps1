@@ -314,6 +314,7 @@ foreach ($rollbackContract in @(
     'old_service_was_up',
     'old_service_had_dir',
     'wait_service_up "$service_link"',
+    'wait_bridge_identity',
     'validate_bridge_identity',
     'weather snapshot exceeds 16 KiB',
     'test ! -L "$service_root"',
