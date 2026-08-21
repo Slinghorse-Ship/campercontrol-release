@@ -76,7 +76,7 @@
         "Victron/VenusOS/pages/camper/v2/CamperV2PanelHost.qml",
         "Victron/VenusOS/pages/camper/v2/CamperV2QuickPanel.qml",
         "Victron/VenusOS/pages/camper/v2/CamperV2WeatherPanel.qml",
-        "Victron/VenusOS/pages/camper/v2/CamperV2WeatherChart.qml",
+        "Victron/VenusOS/components/camper/v2/CamperV2WeatherChart.qml",
         "Victron/VenusOS/data/camper/CamperWeatherAdapter.qml"
       ]
     },

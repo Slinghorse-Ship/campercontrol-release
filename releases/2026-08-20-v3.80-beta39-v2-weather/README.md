@@ -29,6 +29,16 @@ Downloads und unnötige CPU-/RAM-Last.
 - Node-RED und Cerbo-Dienste: `fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7`
 - Ford SYNC: `325d91084fe32e95b60672bff3e3b0f252e91a4f`
 
+Die releasegebundenen Pfade sind:
+
+- `artifacts/` für die installierbaren Cerbo-, GX-, WASM-, Node-RED- und
+  SYNC-Pakete,
+- `assets/production/` für die sieben unveränderten Produktionsbilder aus dem
+  oben festgeschriebenen GUI-Quellcommit,
+- `screenshots/gx-touch50/` für die geprüften 800×480-Referenzbilder,
+- `tools/` für die zu genau diesem Release gehörenden Prüf-, Sicherungs- und
+  Deploymentskripte.
+
 Der Flow umfasst 358 Nodes und exakt 691.785 Bytes. Das Cerbo-Paket enthält
 genau 19 manifestierte Dateien. Darin sind beide runit-`run`-Dateien,
 `device-http-bounded.py`, WLAN-/Privileg-Helfer und der Starlink-Statusleser
@@ -86,3 +96,11 @@ dokumentiert. `checksums.sha256` wird aus diesem Verzeichnis neu erzeugt; die
 Werkzeuge blockieren jede Abweichung vor dem Deployment. Pro vollständigem
 Reinstall wird genau ein gehashtes Pre-Apply-Backup erzeugt. Dieses Release ist
 lokal finalisiert, aber laut Manifest noch nicht deployed.
+
+## Lizenzhinweise
+
+Das Verzeichnis [`LICENSES/`](LICENSES/) gehört zwingend zu diesem Release.
+Originale CamperControl-Anteile sind nichtkommerziell lizenziert; die
+Victron-GX-/WASM-Anteile behalten die Victron Energy OS license v1. Die
+Lizenzdateien und erforderlichen Hinweise müssen mit dem Release oder
+wesentlichen Teilen davon weitergegeben werden.
