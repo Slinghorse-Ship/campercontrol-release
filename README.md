@@ -6,20 +6,21 @@ Dieses Repository ergänzt die drei Quellcode-Repositories. Es enthält die tats
 
 ## Aktuelles Release
 
-Das aktuelle, lokal finalisierte und noch nicht deployte Paket ist
-[`releases/2026-08-20-v3.80-beta39-v2-weather/`](releases/2026-08-20-v3.80-beta39-v2-weather/).
+Das aktuelle, lokal finalisierte und noch nicht deployte Paket liegt im
+release-spezifischen Ordner unter `releases/`, typischerweise der aktuelle
+Ordner auf `main`.
 Es enthält die V2-Oberfläche für GX Touch 50 und Remote Console/WASM, den
 zugehörigen Ford-SYNC-Stand, den Node-RED-Flow sowie den zentralen Cerbo-Dienst
 für DWD-Wetter und echte BSH-Nordsee-Tidedaten.
 
 Die installierbaren Pakete liegen unter
-[`artifacts/`](releases/2026-08-20-v3.80-beta39-v2-weather/artifacts/), die
+[`artifacts/`](releases/<release-id>/artifacts/), die
 releasegebundenen Prüf- und Deploymentskripte unter
-[`tools/`](releases/2026-08-20-v3.80-beta39-v2-weather/tools/) und die exakt zum
-eingefrorenen GUI-Quellcommit gehörenden Bilder unter
-[`assets/production/`](releases/2026-08-20-v3.80-beta39-v2-weather/assets/production/).
+[`tools/`](releases/<release-id>/tools/) und die exakt zum eingefrorenen
+GUI-Quellcommit gehörenden Bilder unter
+[`assets/production/`](releases/<release-id>/assets/production/).
 Vor einer Installation immer zuerst
-[`tools/verify-release.ps1`](releases/2026-08-20-v3.80-beta39-v2-weather/tools/verify-release.ps1)
+[`tools/verify-release.ps1`](releases/<release-id>/tools/verify-release.ps1)
 ausführen. Ein Deployment erfolgt erst nach erfolgreicher lokaler Prüfung und
 ausdrücklicher Freigabe.
 

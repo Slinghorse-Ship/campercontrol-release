@@ -3,7 +3,7 @@
 > **Entwurf vom 20.08.2026 – kein freigegebenes Deployment.**
 >
 > Der aktuelle Arbeitskandidat liegt unter
-> `releases/2026-08-20-v3.80-beta39-v2-weather`. Seit seinem letzten Freeze
+> `releases/<release-id>`. Seit seinem letzten Freeze
 > wurden GUI-, Node-RED-, Wetter-/Tide- und SYNC-Quellen weiterentwickelt. Seine
 > derzeitigen Manifest- und Artefakthashes sind deshalb keine finalen Werte für
 > den nächsten Rollout. Zusätzlich steht die erneute Live-Abnahme des zentralen
@@ -90,7 +90,7 @@ Es führt zuerst einen read-only Kompatibilitätscheck des Cerbo aus, verlangt
 einen sauberen, exakt passenden GUI-Worktree und installiert nichts:
 
 ```powershell
-Set-Location .\releases\2026-08-20-v3.80-beta39-v2-weather
+Set-Location .\releases\<release-id>
 $workspace = (Resolve-Path ..\..\..).Path
 $guiRepository = (Resolve-Path ..\..\..\camper-gui-v2).Path
 $buildOutput = Join-Path $workspace 'build\campercontrol-v3.80-beta39'
@@ -159,7 +159,7 @@ Erst wenn Manifest und Werkzeuge konsistent sind, wird die vollständige
 Checksummliste aus dem Releaseverzeichnis neu geschrieben:
 
 ```powershell
-Set-Location .\releases\2026-08-20-v3.80-beta39-v2-weather
+Set-Location .\releases\<release-id>
 .\tools\write-final-checksums.ps1 -Replace
 .\tools\verify-release.ps1
 .\tools\tests\test-maintenance.ps1
@@ -177,7 +177,7 @@ Der Standardmodus des Wartungstools schreibt auf dem Cerbo nichts. Er erzeugt
 lokal einen Text-, JSON- und ZIP-Bericht:
 
 ```powershell
-Set-Location .\releases\2026-08-20-v3.80-beta39-v2-weather
+Set-Location .\releases\<release-id>
 $workspace = (Resolve-Path ..\..\..).Path
 .\tools\CamperControl-Maintenance.ps1 `
   -CerboHost 172.24.24.1 `
@@ -213,7 +213,7 @@ Unblock in diese Anleitung aufgenommen.
 1. Firmware-, Architektur-, Freeze- und Checksummenprüfung
 2. Upload in den exakten Incoming-Pfad unter `/data/campercontrol/incoming`
 3. atomare, checksumgeprüfte persistente Kopie unter
-   `/data/campercontrol/releases/2026-08-20-v3.80-beta39-v2-weather`
+   `/data/campercontrol/releases/<release-id>`
 4. genau ein komprimiertes Preapply-Backup unter
    `/data/campercontrol/backups`
 5. frisches Entpacken beider GUI-Stages unter
@@ -273,7 +273,7 @@ ist bewusst manuell:
 Auf dem Cerbo zeigt dieses Skript den reinen Status und verändert nichts:
 
 ```sh
-/data/campercontrol/releases/2026-08-20-v3.80-beta39-v2-weather/tools/post-update-status.sh
+/data/campercontrol/releases/<release-id>/tools/post-update-status.sh
 ```
 
 Der explizite geräteseitige Reinstall wird normalerweise vom Windows-Tool
@@ -327,3 +327,4 @@ Nach erfolgreichem Live-Rollout werden in allen vier `BUILD_DEPLOY.md` die
 wirklich ausgelieferten Commits, Artefaktpfade und SHA-256-Werte abgeglichen.
 Bis dahin bleibt dieses Dokument ausdrücklich ein Entwurf und enthält bewusst
 keine als final ausgegebenen Hashwerte des überholten Kandidaten.
+
