@@ -6,9 +6,9 @@ Wetterdienst und Ford SYNC wurden aus ihren finalen Artefakten übernommen.
 
 Quellpins:
 
-- GUI-Build: `9e5a5282162b590b1e446958d97bf268915b3c23`
-- Node-RED/Cerbo: `8805a01e5068bea46e3b4138039c9e260b6b1051`
-- SYNC: `8819d7378ed219836116574bbec3b5cfe31df01a`
+- GUI-Build: `bc7ff198fe5147b6e7480f7fcda929c54862365c`
+- Node-RED/Cerbo: `9927b26139d2f16c32f7e333b2f92c82c51bc47e`
+- SYNC: `fb52cac2bc7ccb0ebac9084577604709163f7e72`
 
 Die Cerbo-Inventarliste umfasst genau 19 Dateien mit Ziel, Modus, Bytezahl und
 SHA-256. `device-http-bounded.py` ist enthalten; der einzige Sonderpfad ist
@@ -23,3 +23,4 @@ Node-RED-Ressourcengrenzen, Transit-Assets und die Firmware-Pins. Eine spätere
 Firmware darf nur nach dem manuellen Kompatibilitätsaudit erneut installiert
 werden. Das Manifest steht weiterhin auf `deployed: false`; diese
 Finalisierung hat weder den Cerbo kontaktiert noch ein Zielsystem verändert.
+
