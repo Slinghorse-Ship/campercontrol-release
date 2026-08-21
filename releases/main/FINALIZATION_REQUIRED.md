@@ -24,3 +24,18 @@ Firmware darf nur nach dem manuellen Kompatibilitätsaudit erneut installiert
 werden. Das Manifest steht weiterhin auf `deployed: false`; diese
 Finalisierung hat weder den Cerbo kontaktiert noch ein Zielsystem verändert.
 
+## Deployment-ready Checklist
+
+- Artefaktquelle: `releases/main/artifacts/{gx,wasm,node-red,sync}`
+- Metadaten: `releases/main/release.json` (Hashes, Dateigrößen, Source-Commits)
+- Checksummen: `releases/main/checksums.sha256` (inkl. neuer Sync-`3.12.1`-ZIP)
+- Source-Commits konsistent:
+  - `camper-gui-v2` → `bc7ff198fe5147b6e7480f7fcda929c54862365c`
+  - `campercontrol-node-red` → `9927b26139d2f16c32f7e333b2f92c82c51bc47e`
+  - `sync3-camper` → `fb52cac2bc7ccb0ebac9084577604709163f7e72`
+- Release-Manifest ist auf:
+  - `status: ready`
+  - `deployed: false`
+  - `artifactFreeze.status: frozen`
+- Branch-Sync-Status: `releases/main` auf `origin/main` clean (`git status` leer)
+
