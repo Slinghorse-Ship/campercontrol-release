@@ -11,14 +11,14 @@
     "qtVersion": "6.8.3"
   },
   "sourceCommits": {
-    "camper-gui-v2": "9e5a5282162b590b1e446958d97bf268915b3c23",
-    "campercontrol-node-red": "8805a01e5068bea46e3b4138039c9e260b6b1051",
-    "sync3-camper": "8819d7378ed219836116574bbec3b5cfe31df01a"
+    "camper-gui-v2": "bc7ff198fe5147b6e7480f7fcda929c54862365c",
+    "campercontrol-node-red": "9927b26139d2f16c32f7e333b2f92c82c51bc47e",
+    "sync3-camper": "fb52cac2bc7ccb0ebac9084577604709163f7e72"
   },
   "artifactFreeze": {
     "status": "frozen",
     "scope": "gx-wasm-node-red-cerbo-sync",
-    "sourceCommit": "9e5a5282162b590b1e446958d97bf268915b3c23",
+    "sourceCommit": "bc7ff198fe5147b6e7480f7fcda929c54862365c",
     "archiveFormat": "deterministic-gnu-tar-gzip",
     "archiveTimestampUtc": "2026-08-21T09:03:42Z"
   },
@@ -55,12 +55,12 @@
   },
   "builds": {
     "gx": {
-      "sourceCommit": "9e5a5282162b590b1e446958d97bf268915b3c23",
+      "sourceCommit": "bc7ff198fe5147b6e7480f7fcda929c54862365c",
       "script": "scripts/build-gx.sh",
       "result": "pass"
     },
     "wasm": {
-      "sourceCommit": "9e5a5282162b590b1e446958d97bf268915b3c23",
+      "sourceCommit": "bc7ff198fe5147b6e7480f7fcda929c54862365c",
       "script": "scripts/build-wasm.sh",
       "result": "pass"
     }
@@ -68,12 +68,12 @@
   "artifacts": {
     "gxArchive": {
       "path": "artifacts/gx/camper-gui-v2-gx-v2-weather.tar.gz",
-      "archiveSha256": "98d24996956224206f1243289765ea45aff4a1fefbfba3330efff78c70a16fce",
-      "bytes": 7154486,
+      "archiveSha256": "f4498b8dcd4c610b62a46ebb14eae5ce92604deb235afb7492ec73ee92100aea",
+      "bytes": 7156143,
       "files": 924,
       "binaryPath": "venus-gui-v2",
-      "binarySha256": "0cac164966355c6335af3416a0615d5d6180261f5139b6eb774da75f02f27d19",
-      "binaryBytes": 10162764,
+      "binarySha256": "94205234efbecf8fce43d5977edf76acc183cd238c1b1e3e13ef2b940a87b006",
+      "binaryBytes": 10166860,
       "requiredFiles": [
         "Victron/VenusOS/pages/camper/CamperShell.qml",
         "Victron/VenusOS/pages/camper/v2/CamperV2PanelHost.qml",
@@ -85,24 +85,24 @@
     },
     "wasmArchive": {
       "path": "artifacts/wasm/camper-gui-v2-wasm-v2-weather.tar.gz",
-      "archiveSha256": "746ed876d3156c05a3760fc4731dbcab4480614ec59194ecbb4a96e124df3e96",
-      "bytes": 16983095,
+      "archiveSha256": "adc74aa368e62bff13e835d1b4cd89a65c9d920076a6d571028d189e503963f8",
+      "bytes": 16985388,
       "files": 21,
       "javascriptPath": "venus-gui-v2.js",
-      "javascriptSha256": "aa92a27cf66dfd691292ed23f9a890c41fe1b574d8c0f10ecff3e3a91cfb41e7",
+      "javascriptSha256": "38acd5a0e7be323899388e7f75d3c0502f4d40ff288bd754f4a9136454eb7956",
       "wasmGzipPath": "venus-gui-v2.wasm.gz",
-      "wasmGzipSha256": "5e584aae4f0adebd4acb0a175a3e4f96ad9bafe7e7472b2edf5258dc0702b584",
-      "wasmGzipBytes": 16830458,
-      "wasmSha256": "44fba9536032fcf6190732a8ef6671792beafd8dab9e587609311b43a9ccc457",
-      "wasmBytes": 36950599
+      "wasmGzipSha256": "9eb3aa2426747749b96cb0c1afaf4b645233c810e5eb779351387a44011e87ef",
+      "wasmGzipBytes": 16832007,
+      "wasmSha256": "8226c6d4db635cf4d710ffb27459d15674658d4f4e7cd03cce1c6fb73c27dee8",
+      "wasmBytes": 36954695
     },
     "nodeRedFlow": {
       "path": "artifacts/node-red/flows.json",
-      "sha256": "70c023f3b88d3d05c2ced05dc6dbb86129e09df7c6dae690ad97596803c22e8d",
-      "bytes": 712001,
-      "nodes": 361,
-      "assertions": 1849,
-      "sourceCommit": "8805a01e5068bea46e3b4138039c9e260b6b1051"
+      "sha256": "51a6a2c97667a1922b4e09090f513149e928a744d72b31f2c5f727bae82a6f57",
+      "bytes": 724382,
+      "nodes": 371,
+      "assertions": 1917,
+      "sourceCommit": "9927b26139d2f16c32f7e333b2f92c82c51bc47e"
     },
     "cerboService": {
       "path": "artifacts/cerbo-service",
@@ -132,12 +132,12 @@
       ]
     },
     "syncArchive": {
-      "path": "artifacts/sync/campercontrol-sync-v3.12.0-v2-weather.zip",
-      "version": "3.12.0",
-      "archiveSha256": "f92f69220192f45f2ddd4cd969f66ef28147bd20e5dc7f29ef0833757855057d",
-      "bytes": 661668,
+      "path": "artifacts/sync/campercontrol-sync-v3.12.1-v2-weather.zip",
+      "version": "3.12.1",
+      "archiveSha256": "bc254756904a8abd282ff78f11c73493a984cf10df0ae3496ada2833cf9e0f43",
+      "bytes": 662846,
       "entries": 40,
-      "sourceCommit": "8819d7378ed219836116574bbec3b5cfe31df01a"
+      "sourceCommit": "fb52cac2bc7ccb0ebac9084577604709163f7e72"
     }
   },
   "validation": {
@@ -149,7 +149,7 @@
       "dark": "f54f528af869c6f3cc2dec1a7b90ae730b6df1d431f67aeb55328ba1fd6aa605",
       "light": "2b67063319cdb66767cca2229996b9e6161a849eddd6b0941fb5f984cf1a594f"
     },
-    "nodeRed": "pass: 361 nodes, 1849 assertions, 0 failures; D-Bus 12/12, weather/tide 27/27, device HTTP 4/4, Shelly 5/5; live read-only battery path pass",
+    "nodeRed": "pass: 371 nodes, 1917 assertions, 0 failures; D-Bus 12/12, weather/tide 27/27, device HTTP 4/4, Shelly 5/5; live read-only battery path pass",
     "sync": "pass: V2-only 40-entry ZIP; Qt runtime 24/24, edge-panel contract 34/34, weather icon runtime pass"
   },
   "optionalComponents": {
