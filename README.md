@@ -53,5 +53,9 @@ mit anderen Rechten, insbesondere Victron Energy `gui-v2`; deshalb sind die
 Zuordnung in [NOTICE.md](NOTICE.md) und das jeweilige `LICENSES/`-Verzeichnis
 eines Releases verbindlicher Bestandteil der Auslieferung.
 
+Aus Lucide abgeleitete Navigationssymbole behalten ihre
+[ISC-/MIT-Lizenz](LICENSE-LUCIDE.txt); der Lizenztext wird ebenfalls in jedes
+Release aufgenommen.
+
 DWD- und BSH-Daten stehen unabhängig davon unter CC BY 4.0. Die erforderlichen
 Quellen- und Verarbeitungshinweise enthält [DATA-LICENSES.md](DATA-LICENSES.md).

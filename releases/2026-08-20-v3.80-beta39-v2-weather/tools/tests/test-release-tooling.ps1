@@ -12,9 +12,9 @@ function Assert-Equal($Actual, $Expected, [string]$Label) {
 }
 
 Assert-Equal $manifest.release '2026-08-20-v3.80-beta39-v2-weather' 'Release id'
-Assert-Equal $manifest.sourceCommits.'camper-gui-v2' '251b7b47124bb474f61a8cdd5217bf0634a87d47' 'GUI commit'
-Assert-Equal $manifest.sourceCommits.'campercontrol-node-red' 'fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7' 'Node/Cerbo commit'
-Assert-Equal $manifest.sourceCommits.'sync3-camper' '325d91084fe32e95b60672bff3e3b0f252e91a4f' 'SYNC commit'
+Assert-Equal $manifest.sourceCommits.'camper-gui-v2' '9e5a5282162b590b1e446958d97bf268915b3c23' 'GUI commit'
+Assert-Equal $manifest.sourceCommits.'campercontrol-node-red' '8805a01e5068bea46e3b4138039c9e260b6b1051' 'Node/Cerbo commit'
+Assert-Equal $manifest.sourceCommits.'sync3-camper' '8819d7378ed219836116574bbec3b5cfe31df01a' 'SYNC commit'
 Assert-Equal $manifest.designs.default 'v2' 'Default design'
 Assert-Equal @($manifest.designs.available).Count 1 'Design count'
 Assert-Equal $manifest.designs.legacyV1Included $false 'V1 exclusion'
@@ -78,6 +78,7 @@ foreach ($stale in @('2026-08-19-v3.80-beta39-display-fit', '9b7df5a9e2fdf8a7cb2
 foreach ($required in @(
     '/data/campercontrol/cache/weather-v1.json',
     '/data/campercontrol/cache/mosmix-stations-v1.cfg',
+    '/data/campercontrol/weather-location.json',
     '/State/Weather',
     'NODE_RED_CONTEXT_TMP_BYTES',
     'OLD_GUI_TREE_KB'

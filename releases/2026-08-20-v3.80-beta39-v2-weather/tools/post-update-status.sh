@@ -10,8 +10,8 @@ release_root=/data/campercontrol/releases/$release_id
 expected_venus_version='v3.80~39'
 expected_venus_build='20260716174100'
 expected_arch=armv7l
-expected_gx_hash=07c0ab68cab304e13f082db094ada2d5a871a386af81c8fb5a680b612e077da4
-expected_wasm_hash=657ca9ca082b309c0204ee3ab91205122a64819ee36ffbb90093f2981e220778
+expected_gx_hash=0cac164966355c6335af3416a0615d5d6180261f5139b6eb774da75f02f27d19
+expected_wasm_hash=5e584aae4f0adebd4acb0a175a3e4f96ad9bafe7e7472b2edf5258dc0702b584
 health_script=$release_root/tools/campercontrol-health-readonly.sh
 
 if [ ! -x "$health_script" ]; then

@@ -8,6 +8,7 @@ This repository is an aggregate distribution. Each bundled source, binary, QML a
 
 - Victron Energy `gui-v2` code and binaries remain under the Victron Energy OS license v1 and must retain the notice “This code is based on Victron Energy code”.
 - CamperControl Node-RED/Cerbo and Ford-SYNC original work remains under its repository's PolyForm Noncommercial license.
+- Selected navigation icons adapted from Lucide remain under ISC; Lucide icons derived from Feather additionally remain under MIT. See [`LICENSE-LUCIDE.txt`](LICENSE-LUCIDE.txt).
 - Third-party libraries and Ford/Victron product material remain under their respective terms.
 - DWD and BSH data remains separately licensed under CC BY 4.0 as documented in [DATA-LICENSES.md](DATA-LICENSES.md); the CamperControl noncommercial restriction does not apply to that data.
 

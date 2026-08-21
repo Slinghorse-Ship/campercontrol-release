@@ -148,9 +148,9 @@ Assert-Equal $manifest.builds.gx.result "pass" "GX build result"
 Assert-Equal $manifest.builds.wasm.result "pass" "WASM build result"
 Assert-Equal $manifest.optionalComponents.shellyBleProbe.enabled $false "Shelly BLE probe enabled state"
 Assert-Equal $manifest.optionalComponents.shellyBleProbe.deployed $false "Shelly BLE probe deployment state"
-Assert-Equal $manifest.sourceCommits.'camper-gui-v2' '251b7b47124bb474f61a8cdd5217bf0634a87d47' 'Frozen GUI source commit'
-Assert-Equal $manifest.sourceCommits.'campercontrol-node-red' 'fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7' 'Frozen Node/Cerbo source commit'
-Assert-Equal $manifest.sourceCommits.'sync3-camper' '325d91084fe32e95b60672bff3e3b0f252e91a4f' 'Frozen SYNC source commit'
+Assert-Equal $manifest.sourceCommits.'camper-gui-v2' '9e5a5282162b590b1e446958d97bf268915b3c23' 'Frozen GUI source commit'
+Assert-Equal $manifest.sourceCommits.'campercontrol-node-red' '8805a01e5068bea46e3b4138039c9e260b6b1051' 'Frozen Node/Cerbo source commit'
+Assert-Equal $manifest.sourceCommits.'sync3-camper' '8819d7378ed219836116574bbec3b5cfe31df01a' 'Frozen SYNC source commit'
 Assert-Equal $manifest.artifacts.nodeRedFlow.sourceCommit $manifest.sourceCommits.'campercontrol-node-red' 'Node-RED artifact source commit'
 Assert-Equal $manifest.artifacts.cerboService.sourceCommit $manifest.sourceCommits.'campercontrol-node-red' 'Cerbo artifact source commit'
 Assert-Equal $manifest.artifacts.syncArchive.sourceCommit $manifest.sourceCommits.'sync3-camper' 'SYNC artifact source commit'
@@ -235,6 +235,25 @@ foreach ($diskFile in $cerboDiskFiles) {
     if ($relative -match '(^|/)(__pycache__|.*\.py[co]$)') { throw "Generated Python cache in Cerbo artifact: $relative" }
 }
 Assert-Equal $manifest.artifacts.cerboService.weatherModuleSha256 (($cerboManifestFiles | Where-Object source -eq 'campercontrol_weather.py').sha256) 'Weather module manifest hash'
+$weatherModule = Get-Content -LiteralPath (Resolve-ReleaseFile 'artifacts/cerbo-service/campercontrol_weather.py') -Raw
+foreach ($weatherLocationContract in @(
+    'DEFAULT_LOCATION_CONFIG_PATH = Path("/data/campercontrol/weather-location.json")',
+    'MAX_LOCATION_CONFIG_BYTES = 1024',
+    'DEFAULT_TIDE_STATION_ID = "wilhelmshaven_alter_vorhafen"',
+    'TIDE_MAX_DISTANCE_KM = 60.0',
+    'region != "north_sea"',
+    'or TIDE_LICENSE not in licence'
+)) {
+    if (-not $weatherModule.Contains($weatherLocationContract)) {
+        throw "Weather location/tide safety contract missing: $weatherLocationContract"
+    }
+}
+$dbusService = Get-Content -LiteralPath (Resolve-ReleaseFile 'artifacts/cerbo-service/campercontrol-dbus.py') -Raw
+foreach ($dbusLocationContract in @('/Settings/WeatherLocation', 'update_location_config')) {
+    if (-not $dbusService.Contains($dbusLocationContract)) {
+        throw "Cerbo location settings contract missing: $dbusLocationContract"
+    }
+}
 $starlinkRecords = @($cerboManifestFiles | Where-Object source -eq 'starlink-read-status.sh')
 Assert-Equal $starlinkRecords.Count 1 'Starlink target mapping count'
 $sudoersRecords = @($cerboManifestFiles | Where-Object source -eq 'sudoers-campercontrol')
@@ -247,6 +266,16 @@ $flowNodes = @(Get-Content -LiteralPath $flowPath -Raw | ConvertFrom-Json)
 Assert-Equal $flowNodes.Count $manifest.artifacts.nodeRedFlow.nodes "Node-RED node count"
 Assert-Equal (Get-Item -LiteralPath $flowPath).Length $manifest.artifacts.nodeRedFlow.bytes "Node-RED flow bytes"
 $flowText = Get-Content -LiteralPath $flowPath -Raw
+$batteryPowerNodes = @($flowNodes | Where-Object id -eq 'ec2c675c3d08f88c')
+Assert-Equal $batteryPowerNodes.Count 1 'System battery power node count'
+Assert-Equal $batteryPowerNodes[0].type 'victron-input-system' 'System battery power node type'
+Assert-Equal $batteryPowerNodes[0].service 'com.victronenergy.system' 'System battery power service'
+Assert-Equal $batteryPowerNodes[0].path '/Dc/Battery/Power' 'System battery power path'
+foreach ($centralLocationFlowContract in @('/Settings/WeatherLocation', 'weatherLocation', 'wilhelmshaven_alter_vorhafen')) {
+    if (-not $flowText.Contains($centralLocationFlowContract)) {
+        throw "Node-RED central weather location contract missing: $centralLocationFlowContract"
+    }
+}
 foreach ($forbiddenFlowContract in @("camper-dashboard-v1", "designVersion === 'v1'", 'designVersion === "v1"')) {
     if ($flowText.Contains($forbiddenFlowContract)) {
         throw "Node-RED contains a legacy V1 runtime contract: $forbiddenFlowContract"
@@ -354,6 +383,7 @@ $backupContent = Get-Content -LiteralPath (Resolve-ReleaseFile 'tools/create-pre
 foreach ($backupPathContract in @(
     'data/rc.local.before-camper-wifi-connect',
     'data/campercontrol/starlink',
+    'data/campercontrol/weather-location.json',
     'etc/sudoers.d/campercontrol'
 )) {
     if (-not $backupContent.Contains($backupPathContract)) {

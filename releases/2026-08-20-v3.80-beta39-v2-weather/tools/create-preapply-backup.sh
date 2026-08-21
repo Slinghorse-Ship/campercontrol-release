@@ -35,6 +35,7 @@ for relative_path in \
 	data/campercontrol/service \
 	data/campercontrol/starlink \
 	data/campercontrol/cache \
+	data/campercontrol/weather-location.json \
 	data/campercontrol/weather-station.conf \
 	etc/sudoers.d/campercontrol \
 	data/home/nodered/.node-red/flows.json \

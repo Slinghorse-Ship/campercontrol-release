@@ -4,9 +4,9 @@
 The module deliberately has no QML or browser dependency.  It selects a DWD
 MOSMIX_L station from the active GX GPS service, downloads the single-station
 forecast, normalizes it to a compact transport contract and keeps an atomic
-cache under ``/data``.  When the GX is close to a North Sea tide gauge, the
-provider also adds the next BSH high and low water predictions. Consumers only
-read the resulting D-Bus/MQTT value.
+cache under ``/data``. Weather and North Sea tide locations are selected
+independently from a Cerbo-owned configuration. Consumers only read the
+resulting D-Bus/MQTT value.
 """
 
 from __future__ import annotations
@@ -34,9 +34,13 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 SOURCE_NAME = "DWD MOSMIX_L"
 SOURCE_ATTRIBUTION = "Quelle: Deutscher Wetterdienst"
+DATA_LICENSE = "CC BY 4.0"
+DATA_LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
+SOURCE_CHANGES = "Stationsauswahl, Normalisierung und Tagesaggregation durch CamperControl"
 TIDE_SOURCE_NAME = "BSH"
 TIDE_ATTRIBUTION = "© Bundesamt für Seeschifffahrt und Hydrographie (BSH)"
 TIDE_LICENSE = "CC BY 4.0"
+TIDE_CHANGES = "Nordseestationsauswahl, UTC-Normalisierung, cm→m und Kurvenreduktion durch CamperControl"
 SCHEMA_VERSION = 1
 STATION_CATALOG_URLS = (
     "https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/"
@@ -53,12 +57,14 @@ TIDE_ITEMS_URL = f"{TIDE_API_ROOT}/collections/waterlevelforecastdata/items"
 DEFAULT_CACHE_PATH = Path("/data/campercontrol/cache/weather-v1.json")
 DEFAULT_CATALOG_PATH = Path("/data/campercontrol/cache/mosmix-stations-v1.cfg")
 DEFAULT_STATION_CONFIG_PATH = Path("/data/campercontrol/weather-station.conf")
+DEFAULT_LOCATION_CONFIG_PATH = Path("/data/campercontrol/weather-location.json")
 DEFAULT_TIDE_CACHE_PATH = Path("/data/campercontrol/cache/bsh-tides-v1.json")
 MAX_CATALOG_BYTES = 2 * 1024 * 1024
 MAX_KMZ_BYTES = 1024 * 1024
 MAX_KML_BYTES = 4 * 1024 * 1024
 MAX_SNAPSHOT_BYTES = 16 * 1024
 MAX_STATION_CONFIG_BYTES = 128
+MAX_LOCATION_CONFIG_BYTES = 1024
 MAX_TIDE_HITS_BYTES = 16 * 1024
 MAX_TIDE_DISCOVERY_PAGE_BYTES = 1536 * 1024
 MAX_TIDE_DISCOVERY_TOTAL_BYTES = 4 * 1024 * 1024
@@ -77,10 +83,10 @@ TIDE_CURVE_PUBLIC_HORIZON_SECONDS = 24 * 60 * 60
 # reached. 145 points are roughly half-hourly; the raw 10-minute series is
 # never cached or published and the encoded cache remains below 16 KiB.
 TIDE_CURVE_CACHE_HORIZON_SECONDS = 72 * 60 * 60
-# A tide prediction is useful near the coast and tidal rivers, but a nearest
-# station must not make tides appear across inland Germany. Sixty kilometres
-# covers common coastal campsites while failing closed well before that occurs.
+# Sixty kilometres bounds only the automatic search for a nearby North Sea
+# station. It must never hide a selected or fallback tide station.
 TIDE_MAX_DISTANCE_KM = 60.0
+DEFAULT_TIDE_STATION_ID = "wilhelmshaven_alter_vorhafen"
 TIDE_CACHE_EVENT_LIMIT = 32
 TIDE_CACHE_CURVE_LIMIT = 145
 # Twenty-five interior samples plus two explicitly interpolated 24-hour
@@ -93,6 +99,7 @@ TIDE_DISCOVERY_RADII_KM = (10.0, 25.0, TIDE_MAX_DISTANCE_KM)
 TIDE_DISCOVERY_PAGE_SIZE = 10
 TIDE_DISCOVERY_MAX_MATCHES = 48
 TIDE_STATION_REUSE_DISTANCE_KM = 10.0
+TIDE_INLAND_MARKERS = ("binnenpegel", "binnenwasser", "binnenschifffahrt", "wehr_unterpegel")
 # MOSMIX_L has four regular model runs per day. A six-hour success interval is
 # sufficient to pick up each run without redundant downloads on the Cerbo.
 REFRESH_SECONDS = 6 * 60 * 60
@@ -314,6 +321,13 @@ def _station_from_feature(feature: dict[str, Any]) -> TideStation | None:
     station_name = " ".join(str(properties.get("gauge_label") or "").split())
     region = str(properties.get("region") or "").strip().lower()
     licence = str(properties.get("licence") or "").strip().upper()
+    inland_text = " ".join(
+        (
+            station_id,
+            station_name,
+            str(properties.get("area") or ""),
+        )
+    ).lower().replace("-", "_").replace(" ", "_")
     coordinates = geometry.get("coordinates")
     if not isinstance(coordinates, list) or len(coordinates) < 2:
         return None
@@ -327,6 +341,7 @@ def _station_from_feature(feature: dict[str, Any]) -> TideStation | None:
         or not station_name
         or region != "north_sea"
         or TIDE_LICENSE not in licence
+        or any(marker in inland_text for marker in TIDE_INLAND_MARKERS)
         or not math.isfinite(latitude)
         or not math.isfinite(longitude)
         or not (-90 <= latitude <= 90 and -180 <= longitude <= 180)
@@ -588,11 +603,11 @@ def parse_utc_z(value: Any) -> dt.datetime | None:
     return parse_time(text)
 
 
-def parse_tide_station(
+def parse_tide_station_feature(
     payload: bytes,
     expected_station_id: str,
     now: dt.datetime,
-) -> tuple[str, str, list[dict[str, Any]], list[dict[str, Any]]]:
+) -> tuple[TideStation, str, list[dict[str, Any]], list[dict[str, Any]]]:
     """Normalize one official OGC feature without retaining its raw curve."""
 
     root = _json_object(payload, MAX_TIDE_STATION_BYTES, "BSH OGC station tide")
@@ -652,7 +667,22 @@ def parse_tide_station(
             break
     if not any(item["type"] == "HW" for item in events) or not any(item["type"] == "NW" for item in events):
         raise ValueError("BSH station tide response has no future HW/NW pair")
-    return station.name, "PNP", events, _normalized_curve(raw_curve, current)
+    return station, "PNP", events, _normalized_curve(raw_curve, current)
+
+
+def parse_tide_station(
+    payload: bytes,
+    expected_station_id: str,
+    now: dt.datetime,
+) -> tuple[str, str, list[dict[str, Any]], list[dict[str, Any]]]:
+    """Compatibility wrapper returning the established public parser tuple."""
+
+    station, reference_level, events, curve = parse_tide_station_feature(
+        payload,
+        expected_station_id,
+        now,
+    )
+    return station.name, reference_level, events, curve
 
 
 def _local_name(tag: str) -> str:
@@ -934,6 +964,9 @@ def build_snapshot(
         "schema": SCHEMA_VERSION,
         "source": SOURCE_NAME,
         "attribution": SOURCE_ATTRIBUTION,
+        "license": DATA_LICENSE,
+        "licenseUrl": DATA_LICENSE_URL,
+        "changes": SOURCE_CHANGES,
         "station": {
             "id": station.station_id,
             "name": station_name or station.name,
@@ -959,6 +992,16 @@ def build_snapshot(
 
 def mark_stale(snapshot: dict[str, Any], now: dt.datetime | None = None) -> dict[str, Any]:
     copy = json.loads(json.dumps(snapshot))
+    # Enrich schema-1 caches created before the explicit CC-BY fields were
+    # added. This keeps a valid offline cache usable without weakening the
+    # transport contract or changing any weather measurements.
+    copy["license"] = DATA_LICENSE
+    copy["licenseUrl"] = DATA_LICENSE_URL
+    copy["changes"] = SOURCE_CHANGES
+    if isinstance(copy.get("tides"), dict):
+        copy["tides"]["license"] = TIDE_LICENSE
+        copy["tides"]["licenseUrl"] = DATA_LICENSE_URL
+        copy["tides"]["changes"] = TIDE_CHANGES
     fetched = parse_time(copy.get("fetchedAtUtc"))
     current = (now or utc_now()).astimezone(dt.timezone.utc)
     copy["stale"] = fetched is None or (current - fetched).total_seconds() >= STALE_AFTER_SECONDS
@@ -1020,6 +1063,49 @@ def load_json_limited(path: Path, maximum_bytes: int) -> dict[str, Any] | None:
     return value if isinstance(value, dict) else None
 
 
+def default_location_config() -> dict[str, Any]:
+    return {
+        "schema": SCHEMA_VERSION,
+        "weather": {"mode": "gps", "stationId": ""},
+        "tide": {"mode": "gps", "stationId": ""},
+    }
+
+
+def parse_location_config(payload: bytes) -> dict[str, Any] | None:
+    """Validate the complete Cerbo-owned location configuration fail-closed."""
+
+    try:
+        source = _json_object(payload, MAX_LOCATION_CONFIG_BYTES, "weather location config")
+    except ValueError:
+        return None
+    if source.get("schema") != SCHEMA_VERSION:
+        return None
+
+    normalized: dict[str, Any] = {"schema": SCHEMA_VERSION}
+    validators = {
+        "weather": re.compile(r"[A-Za-z0-9]{5}"),
+        "tide": re.compile(r"[a-z0-9][a-z0-9_-]{0,127}"),
+    }
+    for section, station_pattern in validators.items():
+        value = source.get(section)
+        if not isinstance(value, dict):
+            return None
+        mode = value.get("mode")
+        station_id = value.get("stationId")
+        if mode not in ("gps", "station") or not isinstance(station_id, str):
+            return None
+        station_id = station_id.strip()
+        if mode == "station" and station_pattern.fullmatch(station_id) is None:
+            return None
+        if mode == "gps" and station_id:
+            return None
+        normalized[section] = {
+            "mode": mode,
+            "stationId": station_id.upper() if section == "weather" else station_id,
+        }
+    return normalized
+
+
 def save_json(path: Path, value: dict[str, Any]) -> None:
     payload = json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
     _atomic_write(path, payload)
@@ -1029,7 +1115,11 @@ def _encoded_json(value: dict[str, Any]) -> bytes:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
 
 
-def _valid_tide_cache(value: dict[str, Any], now: dt.datetime) -> dict[str, Any] | None:
+def _valid_tide_cache(
+    value: dict[str, Any],
+    now: dt.datetime,
+    expected_station_id: str | None = None,
+) -> dict[str, Any] | None:
     if value.get("schema") != 1 or value.get("referenceLevel") != "PNP":
         return None
     updated = parse_utc_z(value.get("updatedUtc"))
@@ -1052,7 +1142,8 @@ def _valid_tide_cache(value: dict[str, Any], now: dt.datetime) -> dict[str, Any]
         not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,127}", station_id)
         or not station_name
         or not math.isfinite(distance_km)
-        or not (0 <= distance_km <= TIDE_MAX_DISTANCE_KM)
+        or distance_km < 0
+        or (expected_station_id is not None and station_id != expected_station_id)
     ):
         return None
 
@@ -1104,6 +1195,9 @@ def _valid_tide_cache(value: dict[str, Any], now: dt.datetime) -> dict[str, Any]
     result = {
         "source": TIDE_SOURCE_NAME,
         "attribution": TIDE_ATTRIBUTION,
+        "license": TIDE_LICENSE,
+        "licenseUrl": DATA_LICENSE_URL,
+        "changes": TIDE_CHANGES,
         "station": {
             "id": station_id,
             "name": station_name,
@@ -1284,6 +1378,7 @@ class WeatherProvider:
         cache_path: Path = DEFAULT_CACHE_PATH,
         catalog_path: Path = DEFAULT_CATALOG_PATH,
         station_config_path: Path = DEFAULT_STATION_CONFIG_PATH,
+        location_config_path: Path = DEFAULT_LOCATION_CONFIG_PATH,
         tide_cache_path: Path = DEFAULT_TIDE_CACHE_PATH,
         download: Callable[[str, int], bytes] = _download,
         tide_http: Callable[[str, int, str | None], HttpResult] | None = None,
@@ -1294,6 +1389,7 @@ class WeatherProvider:
         self.cache_path = cache_path
         self.catalog_path = catalog_path
         self.station_config_path = station_config_path
+        self.location_config_path = location_config_path
         self.tide_cache_path = tide_cache_path
         self.download = download
         if tide_http is not None:
@@ -1310,6 +1406,7 @@ class WeatherProvider:
         self.timezone_reader = timezone_reader
         self.now = now
         self._tide_next_attempt: dt.datetime | None = None
+        self._tide_next_attempt_station_id = ""
 
     def cached(self) -> dict[str, Any] | None:
         value = load_json(self.cache_path)
@@ -1317,9 +1414,14 @@ class WeatherProvider:
             return None
         current = self.now()
         snapshot = mark_stale(value, current)
+        tide_selection = self._location_config()["tide"]
+        expected_tide_station_id = (
+            tide_selection["stationId"] if tide_selection["mode"] == "station" else None
+        )
         tides = _valid_tide_cache(
             load_json_limited(self.tide_cache_path, MAX_TIDE_CACHE_BYTES) or {},
             current,
+            expected_tide_station_id,
         )
         if tides is None:
             snapshot.pop("tides", None)
@@ -1441,79 +1543,81 @@ class WeatherProvider:
             return None
         return TideStation(station_id, station_name, latitude, longitude)
 
-    def _tides_for_position(self, position: tuple[float, float] | None) -> dict[str, Any] | None:
-        current = self.now().astimezone(dt.timezone.utc)
-        cached_value = load_json_limited(self.tide_cache_path, MAX_TIDE_CACHE_BYTES) or {}
-        if position is None:
-            # Tide selection is location-sensitive. A cached weather station or
-            # manual DWD override is not evidence that the vehicle is still
-            # close to the cached BSH gauge.
-            return None
+    @staticmethod
+    def _cache_station_id(value: dict[str, Any]) -> str:
+        station = value.get("station")
+        return str(station.get("id") or "") if isinstance(station, dict) else ""
 
-        cached_station = self._cached_tide_station(cached_value)
-        cached_station_id = cached_station.station_id if cached_station is not None else ""
-        cached_distance = (
-            haversine_km(*position, cached_station.latitude, cached_station.longitude)
-            if cached_station is not None
-            else math.inf
+    @staticmethod
+    def _tide_distance(
+        station: TideStation,
+        position: tuple[float, float] | None,
+        fallback: float = 0.0,
+    ) -> float:
+        if position is not None:
+            return haversine_km(*position, station.latitude, station.longitude)
+        return fallback if math.isfinite(fallback) and fallback >= 0 else 0.0
+
+    def _tides_for_station(
+        self,
+        station_id: str,
+        position: tuple[float, float] | None,
+        current: dt.datetime,
+        cached_value: dict[str, Any],
+        station_hint: TideStation | None = None,
+    ) -> dict[str, Any] | None:
+        """Load exactly one validated BSH North Sea station and its cache."""
+
+        cached_matches = self._cache_station_id(cached_value) == station_id
+        cached_station = self._cached_tide_station(cached_value) if cached_matches else None
+        station = station_hint or cached_station
+        try:
+            stored_distance = float((cached_value.get("station") or {}).get("distanceKm", 0.0))
+        except (TypeError, ValueError):
+            stored_distance = 0.0
+        distance_km = (
+            self._tide_distance(station, position, stored_distance)
+            if station is not None
+            else 0.0
         )
+
         cached_tides: dict[str, Any] | None = None
-        if cached_station is not None and cached_distance <= TIDE_MAX_DISTANCE_KM:
-            cached_value = json.loads(json.dumps(cached_value))
-            cached_value["station"]["distanceKm"] = round(cached_distance, 1)
-            cached_tides = _valid_tide_cache(cached_value, current)
-
-        station: TideStation | None = None
-        distance_km = math.inf
-        if cached_station is not None and cached_distance <= TIDE_STATION_REUSE_DISTANCE_KM:
-            station = cached_station
-            distance_km = cached_distance
-        elif self._tide_next_attempt is not None and current < self._tide_next_attempt:
-            return cached_tides
-        else:
-            try:
-                selected = self._discover_tide_station(position, current)
-            except (OSError, ValueError, UnicodeError, urllib.error.URLError):
-                self._tide_next_attempt = current + dt.timedelta(seconds=TIDE_RETRY_SECONDS)
-                return cached_tides
-            if selected is None:
-                self._tide_next_attempt = current + dt.timedelta(seconds=TIDE_REFRESH_SECONDS)
-                return None
-            station, distance_km = selected
-
-        if station is None or distance_km > TIDE_MAX_DISTANCE_KM:
-            return None
-
-        cached_updated = parse_time(cached_value.get("updatedUtc"))
-        cached_matches = cached_station_id == station.station_id
+        cached_updated = parse_time(cached_value.get("updatedUtc")) if cached_matches else None
         if cached_matches:
-            # Distance is derived from the current fix. It is safe to update in
-            # memory, while exact GPS coordinates are never persisted or logged.
             cached_value = json.loads(json.dumps(cached_value))
             cached_value["station"]["distanceKm"] = round(distance_km, 1)
-            cached_tides = _valid_tide_cache(cached_value, current)
-        else:
-            cached_tides = None
-
+            cached_tides = _valid_tide_cache(cached_value, current, station_id)
         if (
             cached_tides is not None
             and cached_updated is not None
             and (current - cached_updated).total_seconds() < TIDE_REFRESH_SECONDS
         ):
             return cached_tides
-        if self._tide_next_attempt is not None and current < self._tide_next_attempt:
+        if (
+            self._tide_next_attempt_station_id == station_id
+            and self._tide_next_attempt is not None
+            and current < self._tide_next_attempt
+        ):
             return cached_tides
 
         try:
-            cached_etag = _safe_etag(cached_value.get("etag")) if cached_matches else None
+            # A 304 can only be trusted when the corresponding cache includes
+            # metadata that came from an earlier validated BSH Feature/Point.
+            cached_etag = (
+                _safe_etag(cached_value.get("etag"))
+                if cached_matches and cached_station is not None
+                else None
+            )
             response = self.tide_http(
-                tide_station_url(station.station_id),
+                tide_station_url(station_id),
                 MAX_TIDE_STATION_BYTES,
                 cached_etag,
             )
             if response.status == 304:
-                if not cached_matches or cached_tides is None:
+                if cached_station is None or cached_tides is None:
                     raise ValueError("BSH returned 304 without a matching valid cache")
+                station = station_hint or cached_station
+                distance_km = self._tide_distance(station, position, stored_distance)
                 cached_value["updatedUtc"] = iso_utc(current)
                 cached_value["etag"] = response.etag or cached_etag
                 cached_value["station"].update(
@@ -1529,19 +1633,21 @@ class WeatherProvider:
                     raise ValueError("normalized BSH tide cache exceeds size limit")
                 _atomic_write(self.tide_cache_path, encoded)
                 self._tide_next_attempt = None
-                return _valid_tide_cache(cached_value, current)
+                self._tide_next_attempt_station_id = ""
+                return _valid_tide_cache(cached_value, current, station_id)
             if response.status != 200:
                 raise ValueError("unexpected BSH station response")
-            station_name, reference_level, events, curve = parse_tide_station(
+            station, reference_level, events, curve = parse_tide_station_feature(
                 response.payload,
-                station.station_id,
+                station_id,
                 current,
             )
+            distance_km = self._tide_distance(station, position)
             normalized_cache = {
-                "schema": 1,
+                "schema": SCHEMA_VERSION,
                 "station": {
                     "id": station.station_id,
-                    "name": station_name or station.name,
+                    "name": station.name,
                     "latitude": station.latitude,
                     "longitude": station.longitude,
                     "distanceKm": round(distance_km, 1),
@@ -1558,12 +1664,80 @@ class WeatherProvider:
                 raise ValueError("normalized BSH tide cache exceeds size limit")
             _atomic_write(self.tide_cache_path, encoded)
             self._tide_next_attempt = None
-            return _valid_tide_cache(normalized_cache, current)
+            self._tide_next_attempt_station_id = ""
+            return _valid_tide_cache(normalized_cache, current, station_id)
         except (OSError, ValueError, UnicodeError, urllib.error.URLError):
             self._tide_next_attempt = current + dt.timedelta(seconds=TIDE_RETRY_SECONDS)
+            self._tide_next_attempt_station_id = station_id
             return cached_tides
 
-    def _manual_station_id(self) -> str:
+    def _tides_for_position(
+        self,
+        position: tuple[float, float] | None,
+        selection: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        current = self.now().astimezone(dt.timezone.utc)
+        cached_value = load_json_limited(self.tide_cache_path, MAX_TIDE_CACHE_BYTES) or {}
+        tide_selection = selection or self._location_config()["tide"]
+        if tide_selection["mode"] == "station":
+            return self._tides_for_station(
+                tide_selection["stationId"],
+                position,
+                current,
+                cached_value,
+            )
+
+        station: TideStation | None = None
+        cached_station = self._cached_tide_station(cached_value)
+        cached_tides: dict[str, Any] | None = None
+        cached_distance = math.inf
+        if position is not None and cached_station is not None:
+            cached_distance = self._tide_distance(cached_station, position)
+            adjusted_cache = json.loads(json.dumps(cached_value))
+            adjusted_cache["station"]["distanceKm"] = round(cached_distance, 1)
+            cached_tides = _valid_tide_cache(adjusted_cache, current, cached_station.station_id)
+            if cached_distance <= TIDE_STATION_REUSE_DISTANCE_KM:
+                station = cached_station
+
+        if position is not None and station is None:
+            if (
+                self._tide_next_attempt_station_id == "gps-discovery"
+                and self._tide_next_attempt is not None
+                and current < self._tide_next_attempt
+            ):
+                if cached_tides is not None and cached_distance <= TIDE_MAX_DISTANCE_KM:
+                    return cached_tides
+            else:
+                try:
+                    selected = self._discover_tide_station(position, current)
+                except (OSError, ValueError, UnicodeError, urllib.error.URLError):
+                    self._tide_next_attempt = current + dt.timedelta(seconds=TIDE_RETRY_SECONDS)
+                    self._tide_next_attempt_station_id = "gps-discovery"
+                    if cached_tides is not None and cached_distance <= TIDE_MAX_DISTANCE_KM:
+                        return cached_tides
+                    selected = None
+                if selected is not None:
+                    station = selected[0]
+
+        if station is not None:
+            return self._tides_for_station(
+                station.station_id,
+                position,
+                current,
+                cached_value,
+                station,
+            )
+
+        # GPS without a nearby North Sea result, no GPS, or unavailable
+        # discovery all converge on the defined genuine North Sea fallback.
+        return self._tides_for_station(
+            DEFAULT_TIDE_STATION_ID,
+            position,
+            current,
+            cached_value,
+        )
+
+    def _legacy_manual_station_id(self) -> str:
         configured = os.environ.get("CAMPER_WEATHER_STATION", "").strip()
         if not configured:
             try:
@@ -1573,19 +1747,65 @@ class WeatherProvider:
                 ).decode("ascii").splitlines()[0].strip()
             except (OSError, IndexError, UnicodeError, ValueError):
                 configured = ""
-        return configured if re.fullmatch(r"[A-Za-z0-9]{5}", configured) else ""
+        return configured.upper() if re.fullmatch(r"[A-Za-z0-9]{5}", configured) else ""
+
+    def _location_config(self) -> dict[str, Any]:
+        try:
+            payload = _read_limited(self.location_config_path, MAX_LOCATION_CONFIG_BYTES)
+        except FileNotFoundError:
+            config = default_location_config()
+            legacy_station_id = self._legacy_manual_station_id()
+            if legacy_station_id:
+                config["weather"] = {"mode": "station", "stationId": legacy_station_id}
+            return config
+        except (OSError, ValueError):
+            return default_location_config()
+        return parse_location_config(payload) or default_location_config()
+
+    def location_config(self) -> dict[str, Any]:
+        return self._location_config()
+
+    def update_location_config(self, raw_value: Any) -> dict[str, Any]:
+        if not isinstance(raw_value, str):
+            raise ValueError("weather location config must be a JSON string")
+        try:
+            payload = raw_value.encode("utf-8")
+        except UnicodeError as error:
+            raise ValueError("weather location config is not UTF-8") from error
+        config = parse_location_config(payload)
+        if config is None:
+            raise ValueError("weather location config is invalid")
+
+        existing: dict[str, Any] | None = None
+        try:
+            existing = parse_location_config(
+                _read_limited(self.location_config_path, MAX_LOCATION_CONFIG_BYTES)
+            )
+        except (OSError, ValueError):
+            pass
+        if existing != config:
+            save_json(self.location_config_path, config)
+        self._tide_next_attempt = None
+        self._tide_next_attempt_station_id = ""
+        return config
+
+    def _manual_station_id(self, config: dict[str, Any] | None = None) -> str:
+        selection = (config or self._location_config())["weather"]
+        return selection["stationId"] if selection["mode"] == "station" else ""
 
     def _select_station(
         self,
         stations: list[Station],
         position: tuple[float, float] | None = None,
+        config: dict[str, Any] | None = None,
     ) -> tuple[Station, float | None]:
-        manual = self._manual_station_id()
+        manual = self._manual_station_id(config)
         if manual:
             for station in stations:
                 if station.station_id == manual:
                     return station, None
-            raise ValueError(f"configured DWD station {manual} is unknown")
+            # An unknown but syntactically valid ID is an invalid station
+            # selection and therefore falls back to the GPS/default path.
         if position is not None:
             return nearest_station(stations, *position)
         cached = load_json(self.cache_path) or {}
@@ -1596,9 +1816,10 @@ class WeatherProvider:
         raise RuntimeError("no GX GPS fix, cached station or manual DWD station")
 
     def refresh(self) -> dict[str, Any]:
+        config = self._location_config()
         stations = self._catalog()
         position = self.position_reader()
-        station, distance = self._select_station(stations, position)
+        station, distance = self._select_station(stations, position, config)
         kmz = self.download(FORECAST_URL.format(station=station.station_id), MAX_KMZ_BYTES)
         model_run, station_name, series, times = parse_mosmix_kmz(kmz)
         snapshot = build_snapshot(
@@ -1613,7 +1834,7 @@ class WeatherProvider:
         )
         if len(_encoded_json(snapshot)) > MAX_SNAPSHOT_BYTES:
             raise ValueError("normalized weather snapshot exceeds size limit")
-        tides = self._tides_for_position(position)
+        tides = self._tides_for_position(position, config["tide"])
         if tides is not None:
             candidate = dict(snapshot)
             candidate["tides"] = tides

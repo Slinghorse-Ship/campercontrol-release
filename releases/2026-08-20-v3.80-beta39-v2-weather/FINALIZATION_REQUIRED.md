@@ -6,9 +6,9 @@ Wetterdienst und Ford SYNC wurden aus ihren finalen Artefakten übernommen.
 
 Quellpins:
 
-- GUI: `251b7b47124bb474f61a8cdd5217bf0634a87d47`
-- Node-RED/Cerbo: `fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7`
-- SYNC: `325d91084fe32e95b60672bff3e3b0f252e91a4f`
+- GUI-Build: `9e5a5282162b590b1e446958d97bf268915b3c23`
+- Node-RED/Cerbo: `8805a01e5068bea46e3b4138039c9e260b6b1051`
+- SYNC: `8819d7378ed219836116574bbec3b5cfe31df01a`
 
 Die Cerbo-Inventarliste umfasst genau 19 Dateien mit Ziel, Modus, Bytezahl und
 SHA-256. `device-http-bounded.py` ist enthalten; der einzige Sonderpfad ist

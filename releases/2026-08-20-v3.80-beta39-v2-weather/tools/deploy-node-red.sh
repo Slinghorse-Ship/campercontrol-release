@@ -14,8 +14,8 @@ pre_file=/data/home/nodered/.node-red/flows.json.pre-v2-weather-20260820
 failed_file=/data/home/nodered/.node-red/flows.json.failed-v2-weather-20260820
 service=/service/node-red-venus
 backup_dir=/data/campercontrol/backups
-expected_hash=de30f112b02124f5eb09520ff4ae15875ef00b1cf7a995d074322672fab62038
-expected_nodes=358
+expected_hash=70c023f3b88d3d05c2ced05dc6dbb86129e09df7c6dae690ad97596803c22e8d
+expected_nodes=361
 
 probe_node_state() {
 	python3 - <<'PY' &

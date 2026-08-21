@@ -23,7 +23,7 @@ try {
         throw 'Maintenance script must not accept, persist or log a password.'
     }
     $healthSource = Get-Content -LiteralPath $health -Raw -Encoding UTF8
-    foreach ($required in @('campercontrol-health-v2', 'LOADAVG_1', 'MEM_AVAILABLE_KB', 'NODE_RED_RSS_KB', 'NODE_RED_CONTEXT_TMP_COUNT', 'OLD_GUI_TREE_COUNT', 'WEATHER_CACHE_BYTES')) {
+    foreach ($required in @('campercontrol-health-v2', 'LOADAVG_1', 'MEM_AVAILABLE_KB', 'NODE_RED_RSS_KB', 'NODE_RED_CONTEXT_TMP_COUNT', 'OLD_GUI_TREE_COUNT', 'WEATHER_CACHE_BYTES', 'WEATHER_LOCATION_CONFIG_BYTES')) {
         if (-not $healthSource.Contains($required)) { throw "Health resource contract missing: $required" }
     }
     foreach ($forbidden in @('dbus-send', 'SetValue', 'mkdir /', 'rm -rf', 'systemctl restart', 'svc -')) {
@@ -31,7 +31,7 @@ try {
     }
     $parsedMatrix = Get-Content -LiteralPath $matrix -Raw -Encoding UTF8 | ConvertFrom-Json
     if (@($parsedMatrix.knownFirmware).Count -ne 1) { throw 'Expected one explicitly supported firmware entry.' }
-    if ($parsedMatrix.knownFirmware[0].guiRepositoryCommit -ne '251b7b47124bb474f61a8cdd5217bf0634a87d47') {
+    if ($parsedMatrix.knownFirmware[0].guiRepositoryCommit -ne '9e5a5282162b590b1e446958d97bf268915b3c23') {
         throw 'Compatibility matrix is not pinned to the final gui-v2 commit.'
     }
     & $maintenance -SelfTest -ReportDirectory $temporary

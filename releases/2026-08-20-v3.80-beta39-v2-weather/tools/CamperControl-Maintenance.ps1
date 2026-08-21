@@ -655,7 +655,7 @@ function Invoke-OfflineSelfTest {
         MQTT_GXRPC = 'running'
         VRM_LOGGER = 'running'
         NODE_RED_API = 'reachable'
-        NODE_RED_FLOW_COUNT = '358'
+        NODE_RED_FLOW_COUNT = [string]$manifest.artifacts.nodeRedFlow.nodes
         NODE_RED_FLOW_SHA256 = [string]$manifest.artifacts.nodeRedFlow.sha256
         NODE_RED_STATE = 'orion_online=True;orion_mode=1;orion_state=FLOAT;shelly_available=False;shelly_on=False'
         WEATHER_DBUS_STATUS = 'ready'
