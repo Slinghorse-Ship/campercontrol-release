@@ -8,8 +8,8 @@ force_incompatible=0
 release_id=2026-08-20-v3.80-beta39-v2-weather
 release_root=/data/campercontrol/releases/$release_id
 artifact_freeze_status=frozen
-artifact_source_commit=251b7b47124bb474f61a8cdd5217bf0634a87d47
-expected_source_commit=251b7b47124bb474f61a8cdd5217bf0634a87d47
+artifact_source_commit=9e5a5282162b590b1e446958d97bf268915b3c23
+expected_source_commit=9e5a5282162b590b1e446958d97bf268915b3c23
 if [ "$artifact_freeze_status" != frozen ] || [ "$artifact_source_commit" != "$expected_source_commit" ]; then
 	printf '%s\n' "DEPLOY_BLOCKED_UNFROZEN_ARTIFACTS: status=$artifact_freeze_status artifact=$artifact_source_commit expected=$expected_source_commit" >&2
 	exit 5
@@ -40,7 +40,7 @@ version_file=/opt/victronenergy/version
 expected_venus_version='v3.80~39'
 expected_venus_build='20260716174100'
 expected_arch=armv7l
-expected_hash=657ca9ca082b309c0204ee3ab91205122a64819ee36ffbb90093f2981e220778
+expected_hash=5e584aae4f0adebd4acb0a175a3e4f96ad9bafe7e7472b2edf5258dc0702b584
 expected_files=21
 needs_rollback=0
 backup_archive=

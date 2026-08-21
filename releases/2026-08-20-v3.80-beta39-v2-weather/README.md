@@ -23,13 +23,33 @@ der Kurve, plus sechs Tage), wird nur bei Änderung auf D-Bus gesetzt und bleibt
 bei Netzfehlern aus dem Cache lesbar. Das vermeidet Browser-HTTP, parallele
 Downloads und unnötige CPU-/RAM-Last.
 
+Wetter und Tide besitzen unabhängige, zentral auf dem Cerbo gespeicherte
+Standortwahlen in `/data/campercontrol/weather-location.json`. Beide starten
+mit `GPS / automatisch`. Wetter kann stattdessen eine validierte DWD-Station,
+Tide ausschließlich eine kuratierte echte BSH-Nordseestation verwenden. Der
+60-km-Wert begrenzt nur die automatische Suche nach einer nahen Meeresstation;
+ohne Treffer oder GPS bleibt Tide über „Wilhelmshaven Alter Vorhafen“ sichtbar.
+Ein passender gültiger Cache bleibt auch über 60 km verwendbar, während eine
+fest gewählte Tidestation niemals Daten einer anderen Station übernimmt. Die
+alte `weather-station.conf` wird nur gelesen, wenn die neue JSON-Datei fehlt.
+
 ## Eingefrorene Quellen und Artefakte
 
-- gui-v2 GX/WASM: `251b7b47124bb474f61a8cdd5217bf0634a87d47`
-- Node-RED und Cerbo-Dienste: `fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7`
-- Ford SYNC: `325d91084fe32e95b60672bff3e3b0f252e91a4f`
+- gui-v2 GX/WASM: `9e5a5282162b590b1e446958d97bf268915b3c23`
+- Node-RED und Cerbo-Dienste: `8805a01e5068bea46e3b4138039c9e260b6b1051`
+- Ford SYNC: `8819d7378ed219836116574bbec3b5cfe31df01a`
 
-Der Flow umfasst 358 Nodes und exakt 691.785 Bytes. Das Cerbo-Paket enthält
+Die releasegebundenen Pfade sind:
+
+- `artifacts/` für die installierbaren Cerbo-, GX-, WASM-, Node-RED- und
+  SYNC-Pakete,
+- `assets/production/` für die sieben unveränderten Produktionsbilder aus dem
+  oben festgeschriebenen GUI-Quellcommit,
+- `screenshots/gx-touch50/` für die geprüften 800×480-Referenzbilder,
+- `tools/` für die zu genau diesem Release gehörenden Prüf-, Sicherungs- und
+  Deploymentskripte.
+
+Der Flow umfasst 361 Nodes und exakt 712.001 Bytes. Das Cerbo-Paket enthält
 genau 19 manifestierte Dateien. Darin sind beide runit-`run`-Dateien,
 `device-http-bounded.py`, WLAN-/Privileg-Helfer und der Starlink-Statusleser
 enthalten. Nur der Starlink-Statusleser besitzt eine abweichende Zielabbildung:
@@ -86,3 +106,11 @@ dokumentiert. `checksums.sha256` wird aus diesem Verzeichnis neu erzeugt; die
 Werkzeuge blockieren jede Abweichung vor dem Deployment. Pro vollständigem
 Reinstall wird genau ein gehashtes Pre-Apply-Backup erzeugt. Dieses Release ist
 lokal finalisiert, aber laut Manifest noch nicht deployed.
+
+## Lizenzhinweise
+
+Das Verzeichnis [`LICENSES/`](LICENSES/) gehört zwingend zu diesem Release.
+Originale CamperControl-Anteile sind nichtkommerziell lizenziert; die
+Victron-GX-/WASM-Anteile behalten die Victron Energy OS license v1. Die
+Lizenzdateien und erforderlichen Hinweise müssen mit dem Release oder
+wesentlichen Teilen davon weitergegeben werden.

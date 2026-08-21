@@ -11,16 +11,16 @@
     "qtVersion": "6.8.3"
   },
   "sourceCommits": {
-    "camper-gui-v2": "251b7b47124bb474f61a8cdd5217bf0634a87d47",
-    "campercontrol-node-red": "fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7",
-    "sync3-camper": "325d91084fe32e95b60672bff3e3b0f252e91a4f"
+    "camper-gui-v2": "9e5a5282162b590b1e446958d97bf268915b3c23",
+    "campercontrol-node-red": "8805a01e5068bea46e3b4138039c9e260b6b1051",
+    "sync3-camper": "8819d7378ed219836116574bbec3b5cfe31df01a"
   },
   "artifactFreeze": {
     "status": "frozen",
     "scope": "gx-wasm-node-red-cerbo-sync",
-    "sourceCommit": "251b7b47124bb474f61a8cdd5217bf0634a87d47",
+    "sourceCommit": "9e5a5282162b590b1e446958d97bf268915b3c23",
     "archiveFormat": "deterministic-gnu-tar-gzip",
-    "archiveTimestampUtc": "2026-08-20T00:00:00Z"
+    "archiveTimestampUtc": "2026-08-21T09:03:42Z"
   },
   "designs": {
     "default": "v2",
@@ -44,7 +44,10 @@
       "dbusPath": "/State/Weather",
       "cachePath": "/data/campercontrol/cache/weather-v1.json",
       "stationCachePath": "/data/campercontrol/cache/mosmix-stations-v1.cfg",
-      "manualStationPath": "/data/campercontrol/weather-station.conf"
+      "locationConfigPath": "/data/campercontrol/weather-location.json",
+      "legacyManualWeatherStationPath": "/data/campercontrol/weather-station.conf",
+      "defaultTideStationId": "wilhelmshaven_alter_vorhafen",
+      "automaticTideSearchRadiusKm": 60
     },
     "victronSettingsReachable": true,
     "cerboOwnsStateAndWeather": true,
@@ -52,12 +55,12 @@
   },
   "builds": {
     "gx": {
-      "sourceCommit": "251b7b47124bb474f61a8cdd5217bf0634a87d47",
+      "sourceCommit": "9e5a5282162b590b1e446958d97bf268915b3c23",
       "script": "scripts/build-gx.sh",
       "result": "pass"
     },
     "wasm": {
-      "sourceCommit": "251b7b47124bb474f61a8cdd5217bf0634a87d47",
+      "sourceCommit": "9e5a5282162b590b1e446958d97bf268915b3c23",
       "script": "scripts/build-wasm.sh",
       "result": "pass"
     }
@@ -65,52 +68,52 @@
   "artifacts": {
     "gxArchive": {
       "path": "artifacts/gx/camper-gui-v2-gx-v2-weather.tar.gz",
-      "archiveSha256": "1152d828a6c3a52ad736e19ebd297411bf9a91142792acd6924e48fc647d5007",
-      "bytes": 7170318,
+      "archiveSha256": "98d24996956224206f1243289765ea45aff4a1fefbfba3330efff78c70a16fce",
+      "bytes": 7154486,
       "files": 924,
       "binaryPath": "venus-gui-v2",
-      "binarySha256": "07c0ab68cab304e13f082db094ada2d5a871a386af81c8fb5a680b612e077da4",
+      "binarySha256": "0cac164966355c6335af3416a0615d5d6180261f5139b6eb774da75f02f27d19",
       "binaryBytes": 10162764,
       "requiredFiles": [
         "Victron/VenusOS/pages/camper/CamperShell.qml",
         "Victron/VenusOS/pages/camper/v2/CamperV2PanelHost.qml",
         "Victron/VenusOS/pages/camper/v2/CamperV2QuickPanel.qml",
         "Victron/VenusOS/pages/camper/v2/CamperV2WeatherPanel.qml",
-        "Victron/VenusOS/pages/camper/v2/CamperV2WeatherChart.qml",
+        "Victron/VenusOS/components/camper/v2/CamperV2WeatherChart.qml",
         "Victron/VenusOS/data/camper/CamperWeatherAdapter.qml"
       ]
     },
     "wasmArchive": {
       "path": "artifacts/wasm/camper-gui-v2-wasm-v2-weather.tar.gz",
-      "archiveSha256": "017ef424618e84d5e150034c06f86ad466d7ffeed1b85d25e26dd994c3c1f61d",
-      "bytes": 17059098,
+      "archiveSha256": "746ed876d3156c05a3760fc4731dbcab4480614ec59194ecbb4a96e124df3e96",
+      "bytes": 16983095,
       "files": 21,
       "javascriptPath": "venus-gui-v2.js",
-      "javascriptSha256": "54ebcdf1fc9995310ceab9b9f1d424e0e2a73fb6220e567270f5cf45ee7873d6",
+      "javascriptSha256": "aa92a27cf66dfd691292ed23f9a890c41fe1b574d8c0f10ecff3e3a91cfb41e7",
       "wasmGzipPath": "venus-gui-v2.wasm.gz",
-      "wasmGzipSha256": "657ca9ca082b309c0204ee3ab91205122a64819ee36ffbb90093f2981e220778",
-      "wasmGzipBytes": 16903797,
-      "wasmSha256": "40edb03604cae18cb4602f633990f6ed9b57ca8e187310cc7e3d46abaceaa06d",
-      "wasmBytes": 37228116
+      "wasmGzipSha256": "5e584aae4f0adebd4acb0a175a3e4f96ad9bafe7e7472b2edf5258dc0702b584",
+      "wasmGzipBytes": 16830458,
+      "wasmSha256": "44fba9536032fcf6190732a8ef6671792beafd8dab9e587609311b43a9ccc457",
+      "wasmBytes": 36950599
     },
     "nodeRedFlow": {
       "path": "artifacts/node-red/flows.json",
-      "sha256": "de30f112b02124f5eb09520ff4ae15875ef00b1cf7a995d074322672fab62038",
-      "bytes": 691785,
-      "nodes": 358,
-      "assertions": 1812,
-      "sourceCommit": "fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7"
+      "sha256": "70c023f3b88d3d05c2ced05dc6dbb86129e09df7c6dae690ad97596803c22e8d",
+      "bytes": 712001,
+      "nodes": 361,
+      "assertions": 1849,
+      "sourceCommit": "8805a01e5068bea46e3b4138039c9e260b6b1051"
     },
     "cerboService": {
       "path": "artifacts/cerbo-service",
-      "sourceCommit": "fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7",
+      "sourceCommit": "8805a01e5068bea46e3b4138039c9e260b6b1051",
       "fileCount": 19,
-      "weatherModuleSha256": "3755aecc726af7c415a296f0e627d72ecc8cf1b91b44a9d5525eec0e44f0c49b",
+      "weatherModuleSha256": "b4b2aaaba062b421a8c1fbdf602532155d9c09dfd3ca6c126105b0f6b53ea67a",
       "files": [
         {"source": "bluetooth-repair.sh", "target": "/data/campercontrol/service/bluetooth-repair.sh", "mode": "0755", "bytes": 1399, "sha256": "25904801839243b5137b70105576a2fcfdbe2c1321967ebf92dd31929f10c7f5"},
-        {"source": "campercontrol_weather.py", "target": "/data/campercontrol/service/campercontrol_weather.py", "mode": "0644", "bytes": 65426, "sha256": "3755aecc726af7c415a296f0e627d72ecc8cf1b91b44a9d5525eec0e44f0c49b"},
+        {"source": "campercontrol_weather.py", "target": "/data/campercontrol/service/campercontrol_weather.py", "mode": "0644", "bytes": 74127, "sha256": "b4b2aaaba062b421a8c1fbdf602532155d9c09dfd3ca6c126105b0f6b53ea67a"},
         {"source": "campercontrol-dbus-service/run", "target": "/data/campercontrol/service/campercontrol-dbus-service/run", "mode": "0755", "bytes": 95, "sha256": "93196623020e6665f75fc8af70337d967ef10f1377ee3791dcdb7878f6ff185a"},
-        {"source": "campercontrol-dbus.py", "target": "/data/campercontrol/service/campercontrol-dbus.py", "mode": "0755", "bytes": 17949, "sha256": "0e44157b2b0dc3207cb5282ea86b8ec54606acecc96769bce74d284eccfc3079"},
+        {"source": "campercontrol-dbus.py", "target": "/data/campercontrol/service/campercontrol-dbus.py", "mode": "0755", "bytes": 18995, "sha256": "b4ab0b42bd57164035e12e7486f7f1db42f215c46ad9c6bf73bb90273a758442"},
         {"source": "cerbo-reboot.sh", "target": "/data/campercontrol/service/cerbo-reboot.sh", "mode": "0755", "bytes": 148, "sha256": "5f319ec260c065eda6af3675c15cc8405f5b41e35a7d6f9dd62f016d43cf334c"},
         {"source": "device-http-bounded.py", "target": "/data/campercontrol/service/device-http-bounded.py", "mode": "0755", "bytes": 8950, "sha256": "c42a024b17ab75caa20591378d25e764023304fafa41697b6787ee938da8850a"},
         {"source": "ensure-campercontrol-dbus.sh", "target": "/data/campercontrol/service/ensure-campercontrol-dbus.sh", "mode": "0755", "bytes": 738, "sha256": "3ae888f11998a2b0d0d3860e6bd017452c297e8dd02c235f5f6e8e28e2433d53"},
@@ -131,10 +134,10 @@
     "syncArchive": {
       "path": "artifacts/sync/campercontrol-sync-v3.12.0-v2-weather.zip",
       "version": "3.12.0",
-      "archiveSha256": "4f6c20cd52cde241d784f14b4a263cd4315f034e4023d1c10a6ec86dd848fdb9",
-      "bytes": 658932,
+      "archiveSha256": "f92f69220192f45f2ddd4cd969f66ef28147bd20e5dc7f29ef0833757855057d",
+      "bytes": 661668,
       "entries": 40,
-      "sourceCommit": "325d91084fe32e95b60672bff3e3b0f252e91a4f"
+      "sourceCommit": "8819d7378ed219836116574bbec3b5cfe31df01a"
     }
   },
   "validation": {
@@ -146,8 +149,8 @@
       "dark": "f54f528af869c6f3cc2dec1a7b90ae730b6df1d431f67aeb55328ba1fd6aa605",
       "light": "2b67063319cdb66767cca2229996b9e6161a849eddd6b0941fb5f984cf1a594f"
     },
-    "nodeRed": "pass: 358 nodes, 1812 assertions, 0 failures; D-Bus 11/11, weather/tide 22/22, device HTTP 4/4, Shelly 5/5",
-    "sync": "pass: V2-only 40-entry ZIP; tide/weather packaged tests 27/27"
+    "nodeRed": "pass: 361 nodes, 1849 assertions, 0 failures; D-Bus 12/12, weather/tide 27/27, device HTTP 4/4, Shelly 5/5; live read-only battery path pass",
+    "sync": "pass: V2-only 40-entry ZIP; Qt runtime 24/24, edge-panel contract 34/34, weather icon runtime pass"
   },
   "optionalComponents": {
     "shellyBleProbe": {

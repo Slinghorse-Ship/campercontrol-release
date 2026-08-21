@@ -177,6 +177,7 @@ class CamperControlBridge:
         self._service = service_class(SERVICE_NAME, register=False)
         self._commands: queue.Queue[dict[str, Any]] = queue.Queue(maxsize=32)
         self._stop = threading.Event()
+        self._weather_wakeup = threading.Event()
         self._state_delivery_lock = threading.Lock()
         self._pending_state_delivery: tuple[str, Any] | None = None
         self._state_delivery_scheduled = False
@@ -189,6 +190,13 @@ class CamperControlBridge:
         self._api_connected = 0
         self._last_error = "Starting"
         self._weather = WeatherProvider()
+        location_config = self._weather.location_config()
+        location_config_json = json.dumps(
+            location_config,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
 
         self._service.add_mandatory_paths(
             processname=__file__,
@@ -210,6 +218,13 @@ class CamperControlBridge:
         self._service.add_path("/State/Weather", "{}")
         self._service.add_path("/Status/WeatherLastUpdate", 0)
         self._service.add_path("/Status/WeatherError", "")
+        self._service.add_path("/Status/WeatherLocationError", "")
+        self._service.add_path(
+            "/Settings/WeatherLocation",
+            location_config_json,
+            writeable=True,
+            onchangecallback=self._accept_weather_location,
+        )
         self._service.add_path(
             "/Command",
             "",
@@ -231,6 +246,16 @@ class CamperControlBridge:
         except (ValueError, queue.Full) as error:
             self._last_error = str(error)[:256]
             self._service["/Status/LastError"] = self._last_error
+            return False
+
+    def _accept_weather_location(self, _path: str, raw_value: Any) -> bool:
+        try:
+            self._weather.update_location_config(raw_value)
+            self._service["/Status/WeatherLocationError"] = ""
+            self._weather_wakeup.set()
+            return True
+        except (OSError, UnicodeError, ValueError) as error:
+            self._service["/Status/WeatherLocationError"] = str(error)[:256]
             return False
 
     def _apply_state(self, fragments: dict[str, str]) -> bool:
@@ -424,7 +449,8 @@ class CamperControlBridge:
                 self._queue_weather_delivery("error", f"DWD-Wetter: {error}")
                 delay = RETRY_SECONDS[min(retry_index, len(RETRY_SECONDS) - 1)]
                 retry_index += 1
-            self._stop.wait(delay)
+            self._weather_wakeup.wait(delay)
+            self._weather_wakeup.clear()
 
     def start(self) -> None:
         threading.Thread(target=self._state_worker, name="camper-state", daemon=True).start()

@@ -9,7 +9,7 @@
       "qtVersion": "6.8.3",
       "gxSdk": "venus-scarthgap-x86_64-arm-cortexa8hf-neon-toolchain-v3.80~39.sh",
       "emscriptenVersion": "3.1.56",
-      "guiRepositoryCommit": "251b7b47124bb474f61a8cdd5217bf0634a87d47",
+      "guiRepositoryCommit": "9e5a5282162b590b1e446958d97bf268915b3c23",
       "contracts": [
         "tests/camper_v2_panels_contract.py",
         "tests/camper_vrm_transport_contract.py",

@@ -8,6 +8,7 @@ release_id=2026-08-20-v3.80-beta39-v2-weather
 release_root=/data/campercontrol/releases/$release_id
 weather_cache=/data/campercontrol/cache/weather-v1.json
 weather_station_cache=/data/campercontrol/cache/mosmix-stations-v1.cfg
+weather_location_config=/data/campercontrol/weather-location.json
 weather_station_override=/data/campercontrol/weather-station.conf
 node_context=/data/home/nodered/.node-red/context
 
@@ -201,6 +202,8 @@ emit WEATHER_DBUS_STATE_BYTES "$(printf '%s' "$weather_raw" | wc -c | tr -d ' ')
 emit WEATHER_CACHE_PATH "$weather_cache"
 emit WEATHER_CACHE_BYTES "$(file_bytes "$weather_cache")"
 emit WEATHER_STATION_CACHE_BYTES "$(file_bytes "$weather_station_cache")"
+emit WEATHER_LOCATION_CONFIG_BYTES "$(file_bytes "$weather_location_config")"
+emit WEATHER_LOCATION_CONFIG "$(if [ -f "$weather_location_config" ]; then printf present; else printf default-gps; fi)"
 emit WEATHER_STATION_OVERRIDE "$(if [ -f "$weather_station_override" ]; then printf present; else printf automatic; fi)"
 
 processes=$(ps w 2>/dev/null || ps 2>/dev/null || true)
