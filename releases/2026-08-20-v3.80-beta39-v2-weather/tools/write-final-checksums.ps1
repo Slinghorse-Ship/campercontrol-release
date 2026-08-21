@@ -18,11 +18,20 @@ foreach ($required in @(
     $manifest.artifacts.gxArchive.path,
     $manifest.artifacts.wasmArchive.path,
     $manifest.artifacts.nodeRedFlow.path,
-    $manifest.artifacts.syncArchive.path,
-    'artifacts/cerbo-service/campercontrol_weather.py'
+    $manifest.artifacts.syncArchive.path
 )) {
     if (-not (Test-Path -LiteralPath (Join-Path $releaseRoot $required) -PathType Leaf)) {
         throw "Required final artifact missing: $required"
+    }
+}
+$cerboFiles = @($manifest.artifacts.cerboService.files)
+if ($cerboFiles.Count -ne $manifest.artifacts.cerboService.fileCount) {
+    throw 'Cerbo manifest file inventory is incomplete.'
+}
+foreach ($cerboFile in $cerboFiles) {
+    $required = "artifacts/cerbo-service/$($cerboFile.source)"
+    if (-not (Test-Path -LiteralPath (Join-Path $releaseRoot $required) -PathType Leaf)) {
+        throw "Required Cerbo artifact missing: $required"
     }
 }
 foreach ($scriptName in @('deploy-node-red.sh', 'archive-node-red-context-tmp.sh')) {

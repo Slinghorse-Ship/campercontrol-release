@@ -1,0 +1,6 @@
+Defaults:nodered !requiretty
+nodered ALL=(root) NOPASSWD: /data/campercontrol/service/status.sh
+nodered ALL=(root) NOPASSWD: /data/campercontrol/service/network-repair.sh
+nodered ALL=(root) NOPASSWD: /data/campercontrol/service/bluetooth-repair.sh
+nodered ALL=(root) NOPASSWD: /data/campercontrol/service/node-red-restart.sh
+nodered ALL=(root) NOPASSWD: /data/campercontrol/service/cerbo-reboot.sh

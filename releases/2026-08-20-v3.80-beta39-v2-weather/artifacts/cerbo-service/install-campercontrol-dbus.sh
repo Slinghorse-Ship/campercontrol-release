@@ -11,11 +11,13 @@ trap 'rm -f "$TEMP"' 0 HUP INT TERM
 
 [ -f "$BASE/campercontrol-dbus.py" ] || exit 1
 [ -f "$BASE/campercontrol_weather.py" ] || exit 1
+[ -f "$BASE/device-http-bounded.py" ] || exit 1
 [ -f "$BASE/campercontrol-dbus-service/run" ] || exit 1
 [ -f "$START_LINE" ] || exit 1
 
 chmod 0755 "$BASE/campercontrol-dbus.py"
 chmod 0644 "$BASE/campercontrol_weather.py"
+chmod 0755 "$BASE/device-http-bounded.py"
 chmod 0755 "$BASE/campercontrol-dbus-service/run"
 chmod 0755 "$START_LINE"
 

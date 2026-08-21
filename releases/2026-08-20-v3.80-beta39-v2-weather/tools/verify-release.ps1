@@ -148,6 +148,12 @@ Assert-Equal $manifest.builds.gx.result "pass" "GX build result"
 Assert-Equal $manifest.builds.wasm.result "pass" "WASM build result"
 Assert-Equal $manifest.optionalComponents.shellyBleProbe.enabled $false "Shelly BLE probe enabled state"
 Assert-Equal $manifest.optionalComponents.shellyBleProbe.deployed $false "Shelly BLE probe deployment state"
+Assert-Equal $manifest.sourceCommits.'camper-gui-v2' '251b7b47124bb474f61a8cdd5217bf0634a87d47' 'Frozen GUI source commit'
+Assert-Equal $manifest.sourceCommits.'campercontrol-node-red' 'fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7' 'Frozen Node/Cerbo source commit'
+Assert-Equal $manifest.sourceCommits.'sync3-camper' '325d91084fe32e95b60672bff3e3b0f252e91a4f' 'Frozen SYNC source commit'
+Assert-Equal $manifest.artifacts.nodeRedFlow.sourceCommit $manifest.sourceCommits.'campercontrol-node-red' 'Node-RED artifact source commit'
+Assert-Equal $manifest.artifacts.cerboService.sourceCommit $manifest.sourceCommits.'campercontrol-node-red' 'Cerbo artifact source commit'
+Assert-Equal $manifest.artifacts.syncArchive.sourceCommit $manifest.sourceCommits.'sync3-camper' 'SYNC artifact source commit'
 
 $shellyProbe = Get-Content -LiteralPath (Resolve-ReleaseFile $manifest.optionalComponents.shellyBleProbe.toolPath) -Raw
 foreach ($requiredProbeContract in @(
@@ -186,9 +192,60 @@ foreach ($check in $artifactChecks) {
     Assert-Equal (Get-Sha256 $artifactPath) ([string]$check[1]).ToLowerInvariant() $check[2]
 }
 
+$cerboArtifactRoot = [IO.Path]::GetFullPath((Join-Path $releaseRoot $manifest.artifacts.cerboService.path))
+$cerboRootPrefix = $cerboArtifactRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+if (-not (Test-Path -LiteralPath $cerboArtifactRoot -PathType Container)) {
+    throw 'Cerbo artifact directory is missing.'
+}
+$cerboDiskFiles = @(Get-ChildItem -LiteralPath $cerboArtifactRoot -Recurse -File)
+$cerboManifestFiles = @($manifest.artifacts.cerboService.files)
+Assert-Equal $cerboDiskFiles.Count $manifest.artifacts.cerboService.fileCount 'Cerbo artifact file count'
+Assert-Equal $cerboManifestFiles.Count $manifest.artifacts.cerboService.fileCount 'Cerbo manifest inventory count'
+$cerboSources = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+$cerboTargets = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+foreach ($record in $cerboManifestFiles) {
+    $source = ([string]$record.source).Replace('\', '/')
+    if (-not $cerboSources.Add($source)) { throw "Duplicate Cerbo source: $source" }
+    if (-not $cerboTargets.Add([string]$record.target)) { throw "Duplicate Cerbo target: $($record.target)" }
+    if ($source.StartsWith('/') -or $source -match '^[A-Za-z]:' -or $source -match '(^|/)\.\.(/|$)') {
+        throw "Unsafe Cerbo source path: $source"
+    }
+    $artifactPath = [IO.Path]::GetFullPath((Join-Path $cerboArtifactRoot $source.Replace('/', [IO.Path]::DirectorySeparatorChar)))
+    if (-not $artifactPath.StartsWith($cerboRootPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+        -not (Test-Path -LiteralPath $artifactPath -PathType Leaf)) {
+        throw "Cerbo inventory file is missing or escapes its root: $source"
+    }
+    if ((Get-Item -LiteralPath $artifactPath).Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        throw "Cerbo payload may not contain links: $source"
+    }
+    Assert-Equal (Get-Item -LiteralPath $artifactPath).Length $record.bytes "Cerbo bytes $source"
+    Assert-Equal (Get-Sha256 $artifactPath) $record.sha256 "Cerbo hash $source"
+    if ([string]$record.mode -notin @('0644', '0755')) { throw "Invalid Cerbo mode for $source" }
+
+    $expectedTarget = if ($source -eq 'starlink-read-status.sh') {
+        '/data/campercontrol/starlink/read-status.sh'
+    } else {
+        "/data/campercontrol/service/$source"
+    }
+    Assert-Equal $record.target $expectedTarget "Cerbo target $source"
+}
+foreach ($diskFile in $cerboDiskFiles) {
+    $relative = $diskFile.FullName.Substring($cerboArtifactRoot.Length + 1).Replace('\', '/')
+    if (-not $cerboSources.Contains($relative)) { throw "Unmanifested Cerbo artifact: $relative" }
+    if ($relative -match '(^|/)(__pycache__|.*\.py[co]$)') { throw "Generated Python cache in Cerbo artifact: $relative" }
+}
+Assert-Equal $manifest.artifacts.cerboService.weatherModuleSha256 (($cerboManifestFiles | Where-Object source -eq 'campercontrol_weather.py').sha256) 'Weather module manifest hash'
+$starlinkRecords = @($cerboManifestFiles | Where-Object source -eq 'starlink-read-status.sh')
+Assert-Equal $starlinkRecords.Count 1 'Starlink target mapping count'
+$sudoersRecords = @($cerboManifestFiles | Where-Object source -eq 'sudoers-campercontrol')
+Assert-Equal $sudoersRecords.Count 1 'Sudoers mapping count'
+Assert-Equal $sudoersRecords[0].installedTarget '/etc/sudoers.d/campercontrol' 'Sudoers installed target'
+Assert-Equal $sudoersRecords[0].installedMode '0440' 'Sudoers installed mode'
+
 $flowPath = Resolve-ReleaseFile $manifest.artifacts.nodeRedFlow.path
 $flowNodes = @(Get-Content -LiteralPath $flowPath -Raw | ConvertFrom-Json)
 Assert-Equal $flowNodes.Count $manifest.artifacts.nodeRedFlow.nodes "Node-RED node count"
+Assert-Equal (Get-Item -LiteralPath $flowPath).Length $manifest.artifacts.nodeRedFlow.bytes "Node-RED flow bytes"
 $flowText = Get-Content -LiteralPath $flowPath -Raw
 foreach ($forbiddenFlowContract in @("camper-dashboard-v1", "designVersion === 'v1'", 'designVersion === "v1"')) {
     if ($flowText.Contains($forbiddenFlowContract)) {
@@ -217,6 +274,7 @@ foreach ($node in $flowNodes | Where-Object type -eq 'function') {
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $syncPath = Resolve-ReleaseFile $manifest.artifacts.syncArchive.path
+Assert-Equal (Get-Item -LiteralPath $syncPath).Length $manifest.artifacts.syncArchive.bytes "SYNC ZIP bytes"
 $syncZip = [IO.Compression.ZipFile]::OpenRead($syncPath)
 try {
     Assert-Equal $syncZip.Entries.Count $manifest.artifacts.syncArchive.entries "SYNC ZIP entry count"
@@ -292,6 +350,16 @@ $backupInvocations = @(
     ([regex]::Matches($serviceInstallContent, '(?m)^"\$release_root/tools/create-preapply-backup\.sh"$')).Count
 )
 Assert-Equal (($backupInvocations | Measure-Object -Sum).Sum) 1 "one full pre-apply backup per reinstall"
+$backupContent = Get-Content -LiteralPath (Resolve-ReleaseFile 'tools/create-preapply-backup.sh') -Raw
+foreach ($backupPathContract in @(
+    'data/rc.local.before-camper-wifi-connect',
+    'data/campercontrol/starlink',
+    'etc/sudoers.d/campercontrol'
+)) {
+    if (-not $backupContent.Contains($backupPathContract)) {
+        throw "Full pre-apply backup path missing: $backupPathContract"
+    }
+}
 foreach ($stageContract in @(
     'REINSTALL_BLOCKED_STALE_STAGE',
     'NOT_ENOUGH_DATA_SPACE_FOR_STAGES',
@@ -311,21 +379,36 @@ if ($servicePosition -lt 0 -or $nodePosition -le $servicePosition -or $gxPositio
 }
 foreach ($rollbackContract in @(
     'stop_linked_service',
-    'old_service_was_up',
-    'old_service_had_dir',
-    'wait_service_up "$service_link"',
+    'old_dbus_was_up',
+    'old_dbus_had_dir',
+    'old_wifi_was_up',
+    'old_wifi_had_dir',
+    'wait_service_up "$dbus_service_link"',
+    'wait_service_up "$wifi_service_link"',
     'wait_bridge_identity',
     'validate_bridge_identity',
     'weather snapshot exceeds 16 KiB',
     'test ! -L "$service_root"',
-    'mv "$candidate/campercontrol-dbus-service/run" "$service_dir/run"',
-    'mv "$service_dir/run" "$rollback/campercontrol-dbus-service/run"'
+    'NOT_ENOUGH_DATA_SPACE_FOR_SERVICES',
+    'expected_file_count=19',
+    'device-http-bounded.py',
+    'starlink_root/read-status.sh',
+    'mv "$candidate/service/campercontrol-dbus-service/run" "$dbus_service_dir/run"',
+    'mv "$dbus_service_dir/run" "$rollback/service/campercontrol-dbus-service/run"',
+    'mv "$candidate/service/wifi-connect-http-service/run" "$wifi_service_dir/run"',
+    'mv "$wifi_service_dir/run" "$rollback/service/wifi-connect-http-service/run"',
+    '"$service_root/install-privileges.sh"'
 )) {
     if (-not $serviceInstallContent.Contains($rollbackContract)) {
         throw "Service process rollback/weather contract missing: $rollbackContract"
     }
 }
-if ($serviceInstallContent -match 'for relative in[^\r\n]*campercontrol-dbus-service;' -or
+foreach ($cerboSource in $cerboSources) {
+    if (-not $serviceInstallContent.Contains($cerboSource)) {
+        throw "Cerbo installer does not cover manifest source: $cerboSource"
+    }
+}
+if ($serviceInstallContent -match 'for relative in[^\r\n]*(?:campercontrol-dbus-service|wifi-connect-http-service);' -or
     $serviceInstallContent.Contains('rm -rf "$service_root/$relative"')) {
     throw 'Service installer must preserve the runit service-directory/supervise inode during updates'
 }

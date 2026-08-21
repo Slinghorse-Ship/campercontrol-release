@@ -31,7 +31,7 @@ try {
     }
     $parsedMatrix = Get-Content -LiteralPath $matrix -Raw -Encoding UTF8 | ConvertFrom-Json
     if (@($parsedMatrix.knownFirmware).Count -ne 1) { throw 'Expected one explicitly supported firmware entry.' }
-    if ($parsedMatrix.knownFirmware[0].guiRepositoryCommit -ne 'ee6a8f8897832d3e63ffbe98ffdd4389708dfc1e') {
+    if ($parsedMatrix.knownFirmware[0].guiRepositoryCommit -ne '251b7b47124bb474f61a8cdd5217bf0634a87d47') {
         throw 'Compatibility matrix is not pinned to the final gui-v2 commit.'
     }
     & $maintenance -SelfTest -ReportDirectory $temporary

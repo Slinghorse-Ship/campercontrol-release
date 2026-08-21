@@ -6,7 +6,7 @@
 set -eu
 
 confirmation=--confirm-archive-and-remove-context-tmp
-expected_flow_hash=bd0b68e0a9606c660396a0869a0820a664f17592790fdce645e78b005b4f995c
+expected_flow_hash=de30f112b02124f5eb09520ff4ae15875ef00b1cf7a995d074322672fab62038
 flow=/data/home/nodered/.node-red/flows.json
 context_root=/data/home/nodered/.node-red/context
 service=/service/node-red-venus

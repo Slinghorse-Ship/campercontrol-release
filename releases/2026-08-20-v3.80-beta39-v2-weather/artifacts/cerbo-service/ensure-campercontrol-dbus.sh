@@ -6,9 +6,11 @@ SERVICE_DIR=/data/campercontrol/service/campercontrol-dbus-service
 SERVICE_LINK=/service/$SERVICE_NAME
 PYTHON_BRIDGE=/data/campercontrol/service/campercontrol-dbus.py
 WEATHER_PROVIDER=/data/campercontrol/service/campercontrol_weather.py
+DEVICE_HTTP=/data/campercontrol/service/device-http-bounded.py
 
 [ -x "$PYTHON_BRIDGE" ] || exit 1
 [ -r "$WEATHER_PROVIDER" ] || exit 1
+[ -x "$DEVICE_HTTP" ] || exit 1
 [ -x "$SERVICE_DIR/run" ] || exit 1
 
 if [ -L "$SERVICE_LINK" ]; then

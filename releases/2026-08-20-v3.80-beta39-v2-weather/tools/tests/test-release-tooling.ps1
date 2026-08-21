@@ -12,7 +12,9 @@ function Assert-Equal($Actual, $Expected, [string]$Label) {
 }
 
 Assert-Equal $manifest.release '2026-08-20-v3.80-beta39-v2-weather' 'Release id'
-Assert-Equal $manifest.sourceCommits.'camper-gui-v2' 'ee6a8f8897832d3e63ffbe98ffdd4389708dfc1e' 'GUI commit'
+Assert-Equal $manifest.sourceCommits.'camper-gui-v2' '251b7b47124bb474f61a8cdd5217bf0634a87d47' 'GUI commit'
+Assert-Equal $manifest.sourceCommits.'campercontrol-node-red' 'fbf29b334c5c1fc5b05ebeb6f2ce76bc28e036b7' 'Node/Cerbo commit'
+Assert-Equal $manifest.sourceCommits.'sync3-camper' '325d91084fe32e95b60672bff3e3b0f252e91a4f' 'SYNC commit'
 Assert-Equal $manifest.designs.default 'v2' 'Default design'
 Assert-Equal @($manifest.designs.available).Count 1 'Design count'
 Assert-Equal $manifest.designs.legacyV1Included $false 'V1 exclusion'
@@ -25,8 +27,9 @@ $gxEntries = @(& tar -tzf $gx)
 if ($LASTEXITCODE -ne 0) { throw 'Cannot list GX archive.' }
 $wasmEntries = @(& tar -tzf $wasm)
 if ($LASTEXITCODE -ne 0) { throw 'Cannot list WASM archive.' }
-Assert-Equal @($gxEntries | Where-Object { -not $_.EndsWith('/') }).Count 923 'GX file count'
+Assert-Equal @($gxEntries | Where-Object { -not $_.EndsWith('/') }).Count 924 'GX file count'
 Assert-Equal @($wasmEntries | Where-Object { -not $_.EndsWith('/') }).Count 21 'WASM file count'
+Assert-Equal @(Get-ChildItem -LiteralPath (Join-Path $release $manifest.artifacts.cerboService.path) -Recurse -File).Count 19 'Cerbo file count'
 
 $normalizedGx = @($gxEntries | ForEach-Object { $_ -replace '^\./', '' })
 foreach ($required in $manifest.artifacts.gxArchive.requiredFiles) {

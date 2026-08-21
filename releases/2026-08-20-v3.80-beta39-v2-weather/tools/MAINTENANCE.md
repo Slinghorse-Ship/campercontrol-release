@@ -56,6 +56,14 @@ einen vorhandenen `/data/campercontrol/staging`-Stage. Nach einem Venus-Update k
 `/data/rc.local.disabled` umbenannt sein; dann bleibt der Restore blockiert, bis
 Modifikationen bewusst wieder aktiviert und auditiert wurden.
 
+Das eine Pre-Apply-Backup umfasst zusätzlich den Starlink-Helferbaum,
+`rc.local.before-camper-wifi-connect` und die installierte Sudoers-Datei. Der
+anschließende Cerbo-Service-Tausch ist separat transaktional: genau 19
+manifestierte Dateien werden aus einer Candidate-Struktur übernommen. Die
+beiden runit-Serviceverzeichnisse samt `supervise`-Zustand werden nicht ersetzt;
+nur ihre jeweilige `run`-Datei wird atomar getauscht. Der Starlink-Statusleser
+wird explizit nach `/data/campercontrol/starlink/read-status.sh` abgebildet.
+
 Der Upload verwendet `/data/campercontrol/incoming`, die Entpack-Stages liegen
 unter `/data/campercontrol/staging`; der knappe beziehungsweise RAM-basierte
 `/tmp` wird dafür nicht benutzt. Der exakte Incoming-Pfad wird erst nach
