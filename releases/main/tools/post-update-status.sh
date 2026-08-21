@@ -5,7 +5,8 @@
 # compatible with this frozen release.
 set -u
 
-release_id=2026-08-20-v3.80-beta39-v2-weather
+release_root="$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)"
+release_id="$(basename "$release_root")"
 release_root=/data/campercontrol/releases/$release_id
 expected_venus_version='v3.80~39'
 expected_venus_build='20260716174100'

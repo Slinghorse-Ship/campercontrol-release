@@ -4,7 +4,8 @@
 # automatically merely because a new firmware exists.
 set -eu
 
-release_id=2026-08-20-v3.80-beta39-v2-weather
+release_root="$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)"
+release_id="$(basename "$release_root")"
 release_root=/data/campercontrol/releases/$release_id
 gx_archive=$release_root/artifacts/gx/camper-gui-v2-gx-v2-weather.tar.gz
 wasm_archive=$release_root/artifacts/wasm/camper-gui-v2-wasm-v2-weather.tar.gz

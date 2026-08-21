@@ -11,7 +11,7 @@ function Assert-Equal($Actual, $Expected, [string]$Label) {
     if ([string]$Actual -ne [string]$Expected) { throw "$Label mismatch: $Actual != $Expected" }
 }
 
-Assert-Equal $manifest.release '2026-08-20-v3.80-beta39-v2-weather' 'Release id'
+Assert-Equal $manifest.release (Split-Path $release -Leaf) 'Release id'
 Assert-Equal $manifest.sourceCommits.'camper-gui-v2' '9e5a5282162b590b1e446958d97bf268915b3c23' 'GUI commit'
 Assert-Equal $manifest.sourceCommits.'campercontrol-node-red' '8805a01e5068bea46e3b4138039c9e260b6b1051' 'Node/Cerbo commit'
 Assert-Equal $manifest.sourceCommits.'sync3-camper' '8819d7378ed219836116574bbec3b5cfe31df01a' 'SYNC commit'

@@ -1,6 +1,6 @@
 {
   "schema": "campercontrol-release-v2",
-  "release": "2026-08-20-v3.80-beta39-v2-weather",
+  "release": "main",
   "status": "ready",
   "deployed": false,
   "compatibility": {

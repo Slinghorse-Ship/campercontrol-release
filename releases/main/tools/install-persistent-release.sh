@@ -2,9 +2,9 @@
 
 set -eu
 
-release_id=2026-08-20-v3.80-beta39-v2-weather
 script_dir=$(CDPATH= cd "$(dirname "$0")" && pwd -P)
 source_root=$(CDPATH= cd "$script_dir/.." && pwd -P)
+release_id="${source_root##*/}"
 target_parent=/data/campercontrol/releases
 target=$target_parent/$release_id
 candidate=$target_parent/.$release_id.candidate

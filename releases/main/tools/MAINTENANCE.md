@@ -88,7 +88,7 @@ Die bekannte Node-RED-Context-Aufblähung darf erst nach Installation des
 finalisierten, Timer-sicheren Flows bereinigt werden:
 
 ```sh
-/data/campercontrol/releases/2026-08-20-v3.80-beta39-v2-weather/tools/archive-node-red-context-tmp.sh \
+/data/campercontrol/releases/<release_id>/tools/archive-node-red-context-tmp.sh \
   --confirm-archive-and-remove-context-tmp
 ```
 

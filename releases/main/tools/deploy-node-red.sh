@@ -5,7 +5,8 @@
 # Node-RED is stopped.
 set -eu
 
-release_id=2026-08-20-v3.80-beta39-v2-weather
+release_root="$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)"
+release_id="$(basename "$release_root")"
 release_root=/data/campercontrol/releases/$release_id
 artifact=$release_root/artifacts/node-red/flows.json
 active=/data/home/nodered/.node-red/flows.json

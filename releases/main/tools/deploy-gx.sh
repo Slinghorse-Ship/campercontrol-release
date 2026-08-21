@@ -7,7 +7,8 @@
 set -eu
 
 force_incompatible=0
-release_id=2026-08-20-v3.80-beta39-v2-weather
+release_root="$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)"
+release_id="$(basename "$release_root")"
 release_root=/data/campercontrol/releases/$release_id
 artifact_freeze_status=frozen
 artifact_source_commit=9e5a5282162b590b1e446958d97bf268915b3c23
